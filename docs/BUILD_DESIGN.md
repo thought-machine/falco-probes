@@ -223,3 +223,12 @@ This design aims to be representative of what a 1st iteration of maturity for th
 ### Building Entirely in Please without Docker
 
 Currently, we're advising to build entirely in Docker via the `docker.io/falcosecurity/falco-driver-loader` base image which comes with all the build dependencies required. However, this requires running and depending on Docker which can be inefficient, where building entirely with Please would be much cleaner.
+
+### Automated verification of built eBPF Probes
+
+It's possible that our build process may produce incompatible probes, we could build an E2E style test which tests our built eBPF probes against their respective kernels.
+
+
+### Supply-chain security of built eBPF Probes
+
+As we're building eBPF programs which run inside the Linux Kernel, it is desirable for us to provide a way for consumers of this project to verify that the probe they have downloaded was built by us.
