@@ -177,7 +177,7 @@ The below binaries are currently separated to enforce separation of concerns, bu
 
 #### `//cmd/build-falco-ebpf-probe`
 
-In [Building a Falco eBPF Probe](#building-a-falco-ebpf-probe), we used Bash to orchestrate the building of an eBPF probe via [Docker](https://docker.com). This can be replaced by a [Go](https://golang.org/) binary which utilises the above _Interfaces_ to perform the build steps via the [Docker SDK](https://pkg.go.dev/github.com/docker/docker/client).
+In [Building a Falco eBPF Probe](#building-a-falco-ebpf-probe), we used Bash to orchestrate the building of an eBPF probe via [Docker](https://docker.com). Bash can be replaced by a [Go](https://golang.org/) binary which utilises the above _Interfaces_ to perform the build steps via the [Docker SDK](https://pkg.go.dev/github.com/docker/docker/client).
 
 ```bash
 $ plz run //cmd/build-falco-ebpf-probe -- <operating-system> <kernel-package-name>
