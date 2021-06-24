@@ -48,17 +48,7 @@ The _Falco Agent_ supports reading Linux syscall events from [3 types of *Falco 
     - Currently (as of 06/2021) no officially supported implementation.
     - Cannot see root/kernelspace events.
 
-The listing above favours the **eBPF Probe** driver as all of the limitations are primarily around support for legacy kernel versions. The [4.14 Kernel was released in 11/2017](https://lkml.org/lkml/2017/11/12/123) where the table below shows the current (06/2021) minimum kernel versions provided by popular cloud provider operating systems used for [Kubernetes](https://kubernetes.io) that are in active support:
-
-| Cloud Provider / Operating System                                                                                        | Kernel Version |
-| ------------------------------------------------------------------------------------------------------------------------ | -------------- |
-| [Google Container-Optimized OS](https://cloud.google.com/container-optimized-os/docs/release-notes#Current) (COS 77 LTS) | 4.19           |
-| [Google Ubuntu](https://packages.ubuntu.com/bionic/linux-gcp) (18.04)                                                    | 5.4            |
-| [Amazon Linux 2](https://aws.amazon.com/amazon-linux-2/release-notes/)                                                   | 4.14           |
-| [Amazon Ubuntu Linux](https://packages.ubuntu.com/bionic/linux-aws) (18.04)                                              | 5.4            |
-| [Azure Ubuntu Linux](https://packages.ubuntu.com/bionic/linux-aws) (18.04)                                               | 5.4            |
-
-With this in mind, eBPF's disadvantages can be considered moot for modern Kubernetes clusters (with a path for the `--privileged` container flag being mitigated in the future too).
+The listing above favours the **eBPF Probe** driver as all of the limitations are primarily around support for legacy kernel versions. The [4.14 Kernel was released in 11/2017](https://lkml.org/lkml/2017/11/12/123) where the majority of actively supported cloud vendor provided operating systems that can be used with [Kubernetes](https://kubernetes.io) are using a Linux Kernel >= 4.14. With this in mind, eBPF's disadvantages can be considered moot for modern Kubernetes clusters (with a path for the `--privileged` container flag being mitigated in the future too).
 
 ### Building a Falco eBPF Probe
 
