@@ -16,7 +16,7 @@ This design document is only concerned about the building of the _Falco Driver_ 
 
 ## Goals
 
-- Interopable: We must be able to build Falco drivers for a wide-range of operating systems and their kernel versions (e.g. Amazon Linux 2, Google Container OS, Ubuntu, etc.).
+- Interoperable: We must be able to build Falco drivers for a wide-range of operating systems and their kernel versions (e.g. Amazon Linux 2, Google Container OS, Ubuntu, etc.).
 - Scalable: Adding support for more operating systems or kernels must not increase the maintenance and build complexity exponentially. This project must not expect regular human maintenance.
 
 ## Background
