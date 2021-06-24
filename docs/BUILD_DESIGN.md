@@ -62,7 +62,21 @@ With this in mind, eBPF's disadvantages can be considered moot for modern Kubern
 
 ### Building a Falco eBPF Probe
 
-Falco provide a bash script [`falco-driver-loader`](https://falco.org/docs/getting-started/installation/#install-driver) which allows easy building of the Falco kernel module/eBPF probe at runtime. Reverse engineering this bash script yields the following inputs for building an eBPF probe:
+Falco provide the following methods to build _Falco Drivers_: 
+* A bash script [`falco-driver-loader`](https://github.com/falcosecurity/falco/blob/0.28.1/scripts/falco-driver-loader) which is used to build the Falco kernel module/eBPF probe at runtime. 
+* [`driverkit`](https://github.com/falcosecurity/driverkit) which is a command-line tool in active development which FalcoSecurity use to produce their repository of Falco kernel probes.
+
+`driverkit` appears to be the de-facto way to build probes before runtime, upon further investigation we found that:
+- Support for various operating systems is added by fetching kernel sources from package repositories and running similar commands to the `falco-driver-loader` script.
+- It currently does not support Google Container-Optimized OS (`cos`) which is non-trivial to add because there is no package repository and Google only publish kernel sources per build. 
+- This project is also used to pre-build Linux Kernel Modules in their https://download.falco.org/driver repository which is pushed via this [job](https://prow.falco.org/?job=build-drivers-amazonlinux2-periodic) on their CI system, [prow](https://github.com/falcosecurity/test-infra).
+  - This job currently does not build eBPF probes.
+  - This job currently rebuilds every probe and re-uploads them which results in hash changes.
+  - Currently, supporting newer kernel versions requires a pull-request to the repository on GitHub, e.g. https://github.com/falcosecurity/test-infra/pull/419 which makes us dependent on their human review processes.
+
+With this in mind, we have favoured the `falco-driver-loader` method to give us broader Operating System support and attempt to resolve some of the current shortcomings of Falco's probe building infrastructure.
+
+Reverse engineering the `falco-driver-loader` bash script yields the following inputs for building an eBPF probe:
 
 - [`KERNEL_RELEASE`](https://github.com/falcosecurity/falco/blob/0.28.1/scripts/falco-driver-loader#L508) which is the output of `uname -r`.
 - [`KERNEL_VERSION`](https://github.com/falcosecurity/falco/blob/0.28.1/scripts/falco-driver-loader#L514) which is the output of `uname -v` passed to a `sed` command which extracts the number after the `#`.
