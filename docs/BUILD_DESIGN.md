@@ -6,7 +6,7 @@
 
 [Falco's architecture](https://falco.org/docs/getting-started/#falco-architecture) is [composed of](https://falco.org/docs/#what-are-the-components-of-falco):
 
-- A _Falco Agent_: userpace daemon which processes these syscall events by:
+- A _Falco Agent_: userspace daemon which processes these syscall events by:
   1. Matching on user-defined rules.
   2. Forwarding matches to user-defined outputs.
 - A _Falco Driver_: kernel module/eBPF probe which collects Linux kernel syscall events.
