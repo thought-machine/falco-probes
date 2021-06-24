@@ -206,7 +206,7 @@ GitHub Actions offers us a "free" and transparent way for us to build our eBPF p
 
 Instead, we suggest that we use a GitHub Actions worker per Operating System, which falls well within our scaling needs as jobs can run for up to 2 hours.
 
-In order to automatically build new eBPF probes, we propose to initially run these tools on a nightly cron-job. We will only build Falco eBPF probes for Kernels which do not already exist in the _Probe Repository_, so this will be quiet after the intial builds that populate the _Probe Repository_.
+In order to automatically build new eBPF probes, we propose to initially run these tools on a nightly cron-job. We will only build Falco eBPF probes for Kernels which do not already exist in the _Probe Repository_, so this will be quiet after the initial builds that populate the _Probe Repository_.
 
 ## Future Considerations
 
