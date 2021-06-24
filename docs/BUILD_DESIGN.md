@@ -56,13 +56,12 @@ Falco provide the following methods to build _Falco Drivers_:
 * A bash script [`falco-driver-loader`](https://github.com/falcosecurity/falco/blob/0.28.1/scripts/falco-driver-loader) which is used to build the Falco kernel module/eBPF probe at runtime. 
 * [`driverkit`](https://github.com/falcosecurity/driverkit) which is a command-line tool in active development which FalcoSecurity use to produce their repository of Falco kernel probes.
 
-`driverkit` appears to be the de-facto way to build probes before runtime, upon further investigation we found that:
-- Support for various operating systems is added by fetching kernel sources from package repositories and running similar commands to the `falco-driver-loader` script.
-- It currently does not support Google Container-Optimized OS (`cos`) which is non-trivial to add because there is no package repository and Google only publish kernel sources per build. 
+`driverkit` is the de-facto way to build probes before runtime, however upon further investigation we found that it does not quite meet our needs:
+- It currently does not support Google Container-Optimized OS (`cos`) which is non-trivial to add because there is no package repository and Google only publish kernel sources per build of `cos`. 
 - This project is also used to pre-build Linux Kernel Modules in their https://download.falco.org/driver repository which is pushed via this [job](https://prow.falco.org/?job=build-drivers-amazonlinux2-periodic) on their CI system, [prow](https://github.com/falcosecurity/test-infra).
-  - This job currently does not build eBPF probes.
-  - This job currently rebuilds every probe and re-uploads them which results in hash changes.
-  - Currently, supporting newer kernel versions requires a pull-request to the repository on GitHub, e.g. https://github.com/falcosecurity/test-infra/pull/419 which makes us dependent on their human review processes.
+  - This job currently does not build eBPF probes, which we desire.
+  - This job currently rebuilds every probe and re-uploads them which results in hash changes, which does not suit our static hash verification when fetching external assets.
+  - Currently, supporting newer kernel versions requires a pull-request to the repository on GitHub, e.g. https://github.com/falcosecurity/test-infra/pull/419 which makes us dependent on FalcoSecurity's review processes.
 
 With this in mind, we have favoured the `falco-driver-loader` method to give us broader Operating System support and attempt to resolve some of the current shortcomings of Falco's probe building infrastructure.
 
