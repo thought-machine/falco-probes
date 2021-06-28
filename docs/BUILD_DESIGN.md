@@ -164,14 +164,29 @@ Now that we have our _Interfaces_ which abstract the Operating Systems and their
 
 The below binaries are currently separated to enforce separation of concerns, but it is plausible that these may be merged into a single binary in a future maturity.
 
+#### A note on `DRIVER_VERSION`s
+
+In the `falco-driver-loader` script, Falco appear to organize their driver repository by a [`DRIVER_VERSION`](https://github.com/falcosecurity/falco/blob/0.28.1/scripts/falco-driver-loader#L529) variable which implies that Falco probes will only be compatible with a specific `DRIVER_VERSION`. 
+
+With this in mind, we should consider which `DRIVER_VERSION`s to actively support and build new kernel probes for. Due to the young nature of both Falco and this project, for now we will endeavour to at least support `DRIVER_VERSION`s which are compatible with the latest version of Falco and may drop support for `DRIVER_VERSION`s at any given time. In the future, once both projects are more mature we may commit to a policy of producing probes for the last _n_ versions of Falco.
+
+The `DRIVER_VERSION` gets hardcoded into the `falco-driver-loader` script in the Docker Image. We can obtain its value by performing:
+```bash
+$ docker run --rm --entrypoint="" docker.io/falcosecurity/falco-driver-loader:$FALCO_VERSION grep -w "^DRIVER_VERSION" /usr/bin/falco-driver-loader | cut -f2 -d\"
+# e.g. 
+# $ docker run --rm --entrypoint="" docker.io/falcosecurity/falco-driver-loader:0.28.1 grep -w "^DRIVER_VERSION" /usr/bin/falco-driver-loader | cut -f2 -d\"
+# 5c0b863ddade7a45568c0ac97d037422c9efb750
+```
+
 #### `//cmd/build-falco-ebpf-probe`
 
 In [Building a Falco eBPF Probe](#building-a-falco-ebpf-probe), we used Bash to orchestrate the building of an eBPF probe via [Docker](https://docker.com). Bash can be replaced by a [Go](https://golang.org/) binary which utilises the above _Interfaces_ to perform the build steps via the [Docker SDK](https://pkg.go.dev/github.com/docker/docker/client).
 
 ```bash
-$ plz run //cmd/build-falco-ebpf-probe -- <operating-system> <kernel-package-name>
-# $ plz run //cmd/build-falco-ebpf-probe -- amazonlinux2 4.14.232-176.381.amzn2
-# Built eBPF probe for 4.14.232-176.381.amzn2 on amazonlinux2.
+$ plz run //cmd/build-falco-ebpf-probe -- --falco_version=<falco-version> <operating-system> <kernel-package-name>
+# $ plz run //cmd/build-falco-ebpf-probe -- --falco_version=0.28.1 amazonlinux2 4.14.232-176.381.amzn2
+# output file: dist/falco-probes/<falco-driver-version>/<built-probe>
+# e.g. `dist/falco-probes/5c0b863ddade7a45568c0ac97d037422c9efb750/falco_amazonlinux2_4.14.181-142.260.amzn2.x86_64_1.o`
 ```
 
 #### `//cmd/list-kernel-packages`
@@ -193,8 +208,8 @@ This Go binary will be used in CI/CD to determine whether or not a Falco eBPF pr
 The implementation of this depends on `docs/REPOSITORY_DESIGN.md`.
 
 ```bash
-$ plz run //cmd/is-falco-ebpf-probe-uploaded -- <operating-system> <kernel-package-name>
-# $ plz run //cmd/is-falco-ebpf-probe-uploaded -- amazonlinux2 4.14.232-176.381.amzn2
+$ plz run //cmd/is-falco-ebpf-probe-uploaded -- --falco_version=<falco-version> <operating-system> <kernel-package-name>
+# $ plz run //cmd/is-falco-ebpf-probe-uploaded -- --falco_version=0.28.1 amazonlinux2 4.14.232-176.381.amzn2
 # (exit 0 - probe exists in repository)
 # (exit 1 - probe does not exist in repository)
 ```
