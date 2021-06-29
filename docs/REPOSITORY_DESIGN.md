@@ -68,7 +68,7 @@ The `secrets.GITHUB_TOKEN` variable is [automatically available from the action]
 
 ### Releases, Tags and Refs
 
-Github Releases are associated to tags, tying the released assets to the source code at the time said assets were built; this is both the intent design and the user expectation with Releases. If we choose to continually update prior releases to add new assets, we will break this expectation; there will be no guarantee a particular probe was compiled against the source taken at the release/tag ref. Functionally, this won't impact our repository, but it will make it more difficult for us to triage compiled probes, as well as making it more difficult to verify, or reproduce, the compilation process for a given probe in a release. If possible, it would be nice to make individual probe compilation runs discoverable in the 'workflow filter' in the Actions page, simplifying the process of cross-referencing a built probe to the commit the compilation was performed against.
+Github Releases are associated to tags, tying the released assets to the source code at the time said assets were built; this is both the intent design and the user expectation with Releases. If we choose to continually update prior releases to add new assets, we will break this expectation; there will be no guarantee a particular probe was compiled against the source taken at the release/tag ref. Functionally, this won't impact our repository, but it will make it more difficult for us to triage compiled probes, as well as making it more difficult to verify, or reproduce, the compilation process for a given probe in a release.
 
 ### Digests
 
@@ -84,5 +84,5 @@ The only documented constraint associated with releases is a [max file-size cons
 Releases, especially those with lots of assets, aren't easy to explore. Users who wish to check for the existence of a particular probe have several, unsatisfactory options:
 - Use the [Releases API](https://docs.github.com/en/rest/reference/repos#list-releases) to iterate through past releases, and then again through the assets for a given release.
 - Manually scrolling through the release page in the Github UI.
-- Trying to curl down the probe, using the status code to infer it's existence.
-A more user-friendly way of documenting/highlighting which probes have already been compiled could be beneficial. One approach might be to maintain a CHANGELOG type file in the repo that is automatically updated upon successful upload that contains information about the build (link to the action, copy of the digest etc).
+- Trying to curl down the probe, using the status code to infer its existence.
+A more user-friendly way of documenting/highlighting which probes have already been compiled could be beneficial. One approach might be to maintain a CHANGELOG type file in the repo that is automatically updated upon successful upload that contains information about all compiled probes (link to the compilation logs, copy of the digest, ref of the source used during compilation etc).
