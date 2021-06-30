@@ -7,3 +7,12 @@
 ; when you change it all users will automatically get updated.
 [please]
 version = 16.1.1
+
+[go]
+gotool = //third_party/lang:go_tool|go
+
+[alias "lint"]
+cmd = run sequential --include lint //scripts/lint/...
+
+[alias "fmt-all"]
+cmd = run sequential --include fmt //scripts/fmt/...
