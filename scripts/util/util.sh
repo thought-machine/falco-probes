@@ -8,7 +8,7 @@ util::info() {
 }
 
 util::infor() {
-    printf "$(ansi::resetColor)$(ansi::magentaIntense)💡 %s$(ansi::resetColor)" "$@"
+    printf "$(ansi::resetColor)$(ansi::magentaIntense)💡 %s$(ansi::resetColor)\n" "$@"
 }
 
 util::rinfor() {

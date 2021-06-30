@@ -33,6 +33,7 @@ go_module(
     licences = ["bsd-3-clause"],
     module = "golang.org/x/xerrors",
     version = "a5947ffaace3e882f334c1750858b4a6a7e52422",
+    visibility = ["PUBLIC"],
     deps = [":x_sys"],
 )
 
