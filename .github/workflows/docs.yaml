@@ -1,0 +1,12 @@
+name: docs
+on: [push]
+jobs:
+  run-build-design-proof:
+  # This job runs the proof of building a Falco eBPF probe in Bash w/ Docker from docs/BUILD_DESIGN.md
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          kernel_pkgs=$(docker run --rm amazonlinux:2 yum --showduplicates list kernel-devel | tail -n+3 | awk '{ print $2 }')
+          last_kernel_pkg=$(echo "${kernel_pkgs}" | tail -n1)
+          bash ./docs/BUILD_DESIGN_assets/build-amazonlinux2-ebpf-probe.sh "$last_kernel_pkg"
