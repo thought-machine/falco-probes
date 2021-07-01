@@ -56,29 +56,3 @@ util::prompt_skip() {
       * ) util::warn "Did not receive happy input, skipping."; return 1;;
   esac
 }
-
-util::waitForRollout() {
-  local k8s_yaml kind namespace resource limit attempts
-  k8s_yaml="$1"
-  limit=100
-
-  kind_namespace_resources=($("$YQ_BIN" e -N '[. = .kind + "/" + .metadata.namespace + "/" + .metadata.name]' "$k8s_yaml" | sed 's/\/\//\/default\//g'))
-
-  for knr in "${kind_namespace_resources[@]}"; do
-    kind="$(echo "$knr" | cut -d/ -f1)"
-    namespace="$(echo "$knr" | cut -d/ -f2)"
-    resource="$(echo "$knr" | cut -d/ -f3)"
-    attempts=0
-    if [[ "$kind" =~ ^(Deployment|Statefulset)$ ]]; then
-      util::rinfor "waiting for deployment ${namespace}/${resource}"
-      rollout_status_cmd="kubectl -n ${namespace} rollout status ${kind}/${resource}"
-      until $rollout_status_cmd > /dev/null || [ $attempts -eq $limit ]; do
-        attempts=$((attempts + 1))
-        sleep 3
-      done
-    fi
-    if [ $attempts -eq $limit ]; then
-      util::rerror "Deployment '${namespace}/${resource}' did not roll out $($rollout_status_cmd)"
-    fi
-  done  
-}
