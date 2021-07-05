@@ -21,15 +21,13 @@ func TestGetKernelConfiguration(t *testing.T) {
 	kp, err := amazonlinux2.NewKernelPackage(cli, "4.14.200-155.322.amzn2")
 	require.NoError(t, err)
 
-	kernelConfigVol := kp.GetKernelConfiguration()
-
 	out, err := cli.Run(
 		&docker.RunOpts{
 			Image:      "docker.io/library/busybox:latest",
 			Entrypoint: []string{"ls"},
 			Cmd:        []string{"-l", "/lib/modules/"},
 			Volumes: map[operatingsystem.Volume]string{
-				kernelConfigVol: "/lib/modules/",
+				kp.KernelConfiguration: "/lib/modules/",
 			},
 		},
 	)
@@ -45,15 +43,13 @@ func TestGetKernelSources(t *testing.T) {
 	kp, err := amazonlinux2.NewKernelPackage(cli, "4.14.200-155.322.amzn2")
 	require.NoError(t, err)
 
-	kernelSourcesVol := kp.GetKernelSources()
-
 	out, err := cli.Run(
 		&docker.RunOpts{
 			Image:      "docker.io/library/busybox:latest",
 			Entrypoint: []string{"ls"},
 			Cmd:        []string{"-l", "/usr/src/kernels/"},
 			Volumes: map[operatingsystem.Volume]string{
-				kernelSourcesVol: "/usr/src/",
+				kp.KernelSources: "/usr/src/",
 			},
 		},
 	)

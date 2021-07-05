@@ -7,87 +7,41 @@ import (
 	"github.com/thought-machine/falco-probes/pkg/operatingsystem"
 )
 
-// KernelPackage implements operatingsystem.KernelPackage for the example.
-type KernelPackage struct {
-	operatingsystem.KernelPackage
-	dockerClient *docker.Client
-
-	name string
-
-	kernelSources       operatingsystem.Volume
-	kernelConfiguration operatingsystem.Volume
-	osRelease           operatingsystem.FileContents
-
-	kernelRelease string
-	kernelVersion string
-	kernelMachine string
-}
-
 // NewKernelPackage returns a new hydrated example implementation operatingsystem.KernelPackage.
-func NewKernelPackage(dockerClient *docker.Client, name string) (*KernelPackage, error) {
-	kP := &KernelPackage{
-		name:         name,
-		dockerClient: dockerClient,
+func NewKernelPackage(dockerClient *docker.Client, name string) (*operatingsystem.KernelPackage, error) {
+	kP := &operatingsystem.KernelPackage{
+		OperatingSystem: "amazonlinux2",
+		Name:            name,
 	}
 
-	if err := kP.fetchSourcesAndConfiguration(); err != nil {
+	if err := addSourcesAndConfiguration(dockerClient, kP); err != nil {
 		return nil, err
 	}
 
-	if err := kP.fetchOSRelease(); err != nil {
+	if err := addOSRelease(dockerClient, kP); err != nil {
 		return nil, err
 	}
 
-	if err := kP.setKernelReleaseAndVersionAndMachine(); err != nil {
+	if err := addKernelReleaseAndVersionAndMachine(dockerClient, kP); err != nil {
 		return nil, err
 	}
 
 	return kP, nil
 }
 
-// GetKernelRelease implements operatingsystem.KernelPackage.GetKernelRelease for the example.
-func (kp *KernelPackage) GetKernelRelease() string {
-	return kp.kernelRelease
-}
-
-// GetKernelVersion implements operatingsystem.KernelPackage.GetKernelVersion for the example.
-func (kp *KernelPackage) GetKernelVersion() string {
-	return kp.kernelVersion
-}
-
-// GetKernelMachine implements operatingsystem.KernelPackage.GetKernelMachine for the example.
-func (kp *KernelPackage) GetKernelMachine() string {
-	return kp.kernelMachine
-}
-
-// GetOSRelease implements operatingsystem.KernelPackage.GetOSRelease for the example.
-func (kp *KernelPackage) GetOSRelease() operatingsystem.FileContents {
-	return kp.osRelease
-}
-
-// GetKernelConfiguration implements operatingsystem.KernelPackage.GetKernelConfiguration for the example.
-func (kp *KernelPackage) GetKernelConfiguration() operatingsystem.Volume {
-	return kp.kernelConfiguration
-}
-
-// GetKernelSources implements operatingsystem.KernelPackage.GetKernelSources for the example.
-func (kp *KernelPackage) GetKernelSources() operatingsystem.Volume {
-	return kp.kernelSources
-}
-
-func (kp *KernelPackage) fetchSourcesAndConfiguration() error {
-	kp.kernelSources = kp.dockerClient.MustCreateVolume()
-	kp.kernelConfiguration = kp.dockerClient.MustCreateVolume()
+func addSourcesAndConfiguration(dockerClient *docker.Client, kp *operatingsystem.KernelPackage) error {
+	kp.KernelConfiguration = dockerClient.MustCreateVolume()
+	kp.KernelSources = dockerClient.MustCreateVolume()
 
 	// TODO: use http.Get lib to download from repository directly and extract into a docker volume.
-	_, err := kp.dockerClient.Run(
+	_, err := dockerClient.Run(
 		&docker.RunOpts{
 			Image:      "docker.io/library/amazonlinux:2",
 			Entrypoint: []string{"yum"},
-			Cmd:        []string{"-y", "install", "kernel-devel-" + kp.name, "kernel-" + kp.name},
+			Cmd:        []string{"-y", "install", "kernel-devel-" + kp.Name, "kernel-" + kp.Name},
 			Volumes: map[operatingsystem.Volume]string{
-				kp.kernelSources:       "/usr/src/",
-				kp.kernelConfiguration: "/lib/modules/",
+				kp.KernelSources:       "/usr/src/",
+				kp.KernelConfiguration: "/lib/modules/",
 			},
 		},
 	)
@@ -98,8 +52,8 @@ func (kp *KernelPackage) fetchSourcesAndConfiguration() error {
 	return nil
 }
 
-func (kp *KernelPackage) fetchOSRelease() error {
-	out, err := kp.dockerClient.Run(
+func addOSRelease(dockerClient *docker.Client, kp *operatingsystem.KernelPackage) error {
+	out, err := dockerClient.Run(
 		&docker.RunOpts{
 			Image:      "docker.io/library/amazonlinux:2",
 			Entrypoint: []string{"cat"},
@@ -109,34 +63,34 @@ func (kp *KernelPackage) fetchOSRelease() error {
 	if err != nil {
 		return err
 	}
-	kp.osRelease = operatingsystem.FileContents(out)
+	kp.OSRelease = operatingsystem.FileContents(out)
 
 	return nil
 }
 
-func (kp *KernelPackage) setKernelReleaseAndVersionAndMachine() error {
-	kernelSrcPath, err := findKernelSrcPath(kp.dockerClient, kp.kernelSources, kp.name)
+func addKernelReleaseAndVersionAndMachine(dockerClient *docker.Client, kp *operatingsystem.KernelPackage) error {
+	kernelSrcPath, err := findKernelSrcPath(dockerClient, kp.KernelSources, kp.Name)
 	if err != nil {
 		return err
 	}
 
-	kernelRelease, err := getKernelRelease(kp.dockerClient, kp.kernelSources, kernelSrcPath)
+	kernelRelease, err := getKernelRelease(dockerClient, kp.KernelSources, kernelSrcPath)
 	if err != nil {
 		return err
 	}
-	kp.kernelRelease = kernelRelease
+	kp.KernelRelease = kernelRelease
 
-	kernelVersion, err := getKernelVersion(kp.dockerClient, kp.kernelSources, kernelSrcPath)
+	kernelVersion, err := getKernelVersion(dockerClient, kp.KernelSources, kernelSrcPath)
 	if err != nil {
 		return err
 	}
-	kp.kernelVersion = kernelVersion
+	kp.KernelVersion = kernelVersion
 
-	kernelMachine, err := getKernelMachine(kp.dockerClient, kp.kernelSources, kernelSrcPath)
+	kernelMachine, err := getKernelMachine(dockerClient, kp.KernelSources, kernelSrcPath)
 	if err != nil {
 		return err
 	}
-	kp.kernelMachine = kernelMachine
+	kp.KernelMachine = kernelMachine
 
 	return nil
 }

@@ -41,6 +41,6 @@ func (s *AmazonLinux2) GetKernelPackageNames() ([]string, error) {
 }
 
 // GetKernelPackageByName implements operatingsystem.OperatingSystem.GetKernelPackageByName for the amazonlinux2.
-func (s *AmazonLinux2) GetKernelPackageByName(name string) (operatingsystem.KernelPackage, error) {
+func (s *AmazonLinux2) GetKernelPackageByName(name string) (*operatingsystem.KernelPackage, error) {
 	return NewKernelPackage(s.dockerClient, name)
 }

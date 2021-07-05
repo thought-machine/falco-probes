@@ -28,11 +28,11 @@ func TestGetKernelPackageByName(t *testing.T) {
 	res, err := os.GetKernelPackageByName("4.14.200-155.322.amzn2")
 	assert.NoError(t, err)
 
-	assert.Equal(t, "4.14.200-155.322.amzn2.x86_64", res.GetKernelRelease())
-	assert.Equal(t, "#1 SMP Thu Oct 15 20:11:12 UTC 2020", res.GetKernelVersion())
-	assert.Equal(t, "x86_64", res.GetKernelMachine())
-	assert.Contains(t, res.GetOSRelease(), "NAME=\"Amazon Linux\"")
+	assert.Equal(t, "4.14.200-155.322.amzn2.x86_64", res.KernelRelease)
+	assert.Equal(t, "#1 SMP Thu Oct 15 20:11:12 UTC 2020", res.KernelVersion)
+	assert.Equal(t, "x86_64", res.KernelMachine)
+	assert.Contains(t, res.OSRelease, "NAME=\"Amazon Linux\"")
 
-	assert.NotEmpty(t, res.GetKernelConfiguration())
-	assert.NotEmpty(t, res.GetKernelSources())
+	assert.NotEmpty(t, res.KernelConfiguration)
+	assert.NotEmpty(t, res.KernelSources)
 }
