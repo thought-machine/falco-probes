@@ -32,6 +32,10 @@ func (c *Client) Run(opts *RunOpts) (string, error) {
 
 	io.Copy(os.Stdout, reader)
 
+	if err := reader.Close(); err != nil {
+		return "", err
+	}
+
 	resp, err := c.upstream.ContainerCreate(ctx, &container.Config{
 		Image:      opts.Image,
 		Entrypoint: opts.Entrypoint,
@@ -63,6 +67,10 @@ func (c *Client) Run(opts *RunOpts) (string, error) {
 	}
 
 	containerLogs := HandleContainerLogs(out)
+
+	if err := out.Close(); err != nil {
+		return "", err
+	}
 
 	if err := c.upstream.ContainerRemove(ctx, resp.ID, types.ContainerRemoveOptions{RemoveVolumes: true}); err != nil {
 		return "", err
