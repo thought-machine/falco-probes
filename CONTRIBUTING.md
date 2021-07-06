@@ -20,6 +20,6 @@ The process is as follows:
 3. Add your commits with a [descriptive](https://chris.beams.io/posts/git-commit/) subject line and body using `git commit -a`.
 4. Push your commits to a remote feature branch `git push origin <feature-branch>`.
 5. Create a pull request through the UI, please request a review from the Thought Machine Organisation members and apply any relevant labels.
-6. Once discussed and approved the commit will be merged onto master by a Thought Machine Organisation member.
+6. Once discussed and approved, the UI will be used to squash and merge the PR onto master by a Thought Machine Organisation member.
 ## Future Considerations
 - Should interest in contributing increase, the Thought Machine Organisation members may consider implementing a CLA/DCO as needed.
