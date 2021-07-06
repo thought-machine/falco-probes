@@ -1,3 +1,5 @@
+package(default_visibility = ["PUBLIC"])
+
 go_module(
     name = "x_tools",
     hashes = ["dff907b66b1f2cfd3536c92d71dfd5f28078026249f850214ee1a860519decc6"],
@@ -16,7 +18,6 @@ go_module(
     licences = ["bsd-3-clause"],
     module = "golang.org/x/tools",
     version = "5bcca83a78812bd91ce8cb29be4fc4521cdc8f6f",
-    visibility = ["PUBLIC"],
     deps = [
         ":x_errors",
         ":x_mod",
@@ -33,7 +34,6 @@ go_module(
     licences = ["bsd-3-clause"],
     module = "golang.org/x/xerrors",
     version = "a5947ffaace3e882f334c1750858b4a6a7e52422",
-    visibility = ["PUBLIC"],
     deps = [":x_sys"],
 )
 
@@ -59,4 +59,299 @@ go_module(
     module = "golang.org/x/mod",
     version = "v0.4.2",
     deps = [":x_errors"],
+)
+
+go_module(
+    name = "stretchr_testify",
+    install = [
+        "assert",
+        "require",
+    ],
+    licences = ["MIT"],
+    module = "github.com/stretchr/testify",
+    version = "v1.7.0",
+    deps = [
+        ":davecgh_spew",
+        ":pmezard_difflib",
+        ":stretchr_objx",
+        ":yaml_v3",
+    ],
+)
+
+go_module(
+    name = "davecgh_spew",
+    install = ["spew"],
+    licences = ["ISC"],
+    module = "github.com/davecgh/go-spew",
+    version = "v1.1.0",
+)
+
+go_module(
+    name = "pmezard_difflib",
+    install = ["difflib"],
+    module = "github.com/pmezard/go-difflib",
+    version = "v1.0.0",
+)
+
+go_module(
+    name = "stretchr_objx",
+    licences = ["MIT"],
+    module = "github.com/stretchr/objx",
+    version = "v0.1.0",
+    deps = [":davecgh_spew"],
+)
+
+go_module(
+    name = "yaml_v3",
+    licences = [
+        "Apache-2.0",
+        "MIT",
+    ],
+    module = "gopkg.in/yaml.v3",
+    version = "v3.0.0-20200313102051-9f266ea9e77c",
+)
+
+go_module(
+    name = "docker",
+    install = [
+        "api/types",
+        "api/types/container",
+        "api/types/filters",
+        "api/types/versions",
+        "api/types/swarm",
+        "api/types/swarm/runtime",
+        "api/types/network",
+        "api/types/time",
+        "api/types/registry",
+        "api/types/events",
+        "api/types/image",
+        "api/types/volume",
+        "api/types/mount",
+        "api/types/strslice",
+        "api/types/blkiodev",
+        "api",
+        "client",
+        "pkg/stdcopy",
+        "errdefs",
+    ],
+    licences = ["Apache-2.0"],
+    module = "github.com/docker/docker",
+    version = "v20.10.7+incompatible",
+    deps = [
+        ":containerd",
+        ":docker_connections",
+        ":docker_distribution",
+        ":docker_units",
+        ":gogo_protobuf",
+        ":opencontainers_imagespec",
+        ":sirupsen_logrus",
+    ],
+)
+
+go_module(
+    name = "docker_connections",
+    install = [
+        "nat",
+        "sockets",
+        "tlsconfig",
+    ],
+    licences = ["Apache-2.0"],
+    module = "github.com/docker/go-connections",
+    version = "v0.4.0",
+    deps = [
+        ":pkg_errors",
+        ":x_net",
+    ],
+)
+
+go_module(
+    name = "docker_units",
+    licences = ["Apache-2.0"],
+    module = "github.com/docker/go-units",
+    version = "v0.4.0",
+)
+
+go_module(
+    name = "docker_distribution",
+    install = [
+        "registry/api/errcode",
+        "reference",
+        "digestset",
+    ],
+    licences = ["Apache-2.0"],
+    module = "github.com/docker/distribution",
+    version = "v2.7.1+incompatible",
+    deps = [
+        ":opencontainers_digest",
+    ],
+)
+
+go_module(
+    name = "containerd",
+    install = [
+        "errdefs",
+        "platforms",
+        "log",
+    ],
+    licences = ["Apache-2.0"],
+    module = "github.com/containerd/containerd",
+    version = "v1.5.2",
+    deps = [
+        ":google_grpc",
+        ":opencontainers_imagespec",
+        ":pkg_errors",
+        ":sirupsen_logrus",
+    ],
+)
+
+go_module(
+    name = "pkg_errors",
+    licences = ["BSD-2-Clause"],
+    module = "github.com/pkg/errors",
+    version = "v0.9.1",
+)
+
+go_module(
+    name = "google_grpc",
+    install = [
+        "codes",
+        "status",
+        "internal/...",
+    ],
+    licences = ["Apache-2.0"],
+    module = "google.golang.org/grpc",
+    version = "v1.33.2",
+    deps = [
+        ":github_protobuf",
+        ":google_genproto",
+        ":x_net",
+        ":x_sys",
+    ],
+)
+
+go_module(
+    name = "github_protobuf",
+    install = [
+        "proto",
+        "ptypes",
+        "ptypes/any",
+        "ptypes/duration",
+        "ptypes/timestamp",
+        "ptypes/wrappers",
+    ],
+    licences = ["BSD-3-Clause"],
+    module = "github.com/golang/protobuf",
+    version = "v1.5.2",
+    deps = [
+        ":google_protobuf",
+    ],
+)
+
+go_module(
+    name = "google_protobuf",
+    install = [
+        "proto",
+        "encoding/prototext",
+        "encoding/protowire",
+        "runtime/protoimpl",
+        "runtime/protoiface",
+        "reflect/protoreflect",
+        "reflect/protoregistry",
+        "reflect/protodesc",
+        "types/known/anypb",
+        "types/known/durationpb",
+        "types/known/timestamppb",
+        "types/known/wrapperspb",
+        "types/descriptorpb",
+        "internal/...",
+    ],
+    licences = ["BSD-3-Clause"],
+    module = "google.golang.org/protobuf",
+    version = "v1.27.1",
+)
+
+go_module(
+    name = "google_genproto",
+    install = [
+        "googleapis/rpc/status",
+        "googleapis/rpc/code",
+    ],
+    licences = ["Apache-2.0"],
+    module = "google.golang.org/genproto",
+    version = "v0.0.0-20200526211855-cb27e3aa2013",
+    deps = [
+        ":github_protobuf",
+    ],
+)
+
+go_module(
+    name = "sirupsen_logrus",
+    licences = ["MIT"],
+    module = "github.com/sirupsen/logrus",
+    version = "v1.8.1",
+    deps = [
+        ":x_sys",
+    ],
+)
+
+go_module(
+    name = "opencontainers_imagespec",
+    install = [
+        "specs-go/v1",
+        "specs-go",
+    ],
+    licences = ["Apache-2.0"],
+    module = "github.com/opencontainers/image-spec",
+    version = "v1.0.1",
+    deps = [
+        ":opencontainers_digest",
+    ],
+)
+
+go_module(
+    name = "opencontainers_digest",
+    licences = [
+        "Apache-2.0",
+        "CC-BY-SA-4.0",
+    ],
+    module = "github.com/opencontainers/go-digest",
+    version = "v1.0.0",
+)
+
+go_module(
+    name = "gogo_protobuf",
+    install = [
+        "proto",
+    ],
+    licences = ["BSD-3-Clause"],
+    module = "github.com/gogo/protobuf",
+    version = "v1.3.2",
+)
+
+go_module(
+    name = "x_net",
+    install = [
+        "proxy",
+        "internal/socks",
+        "http2",
+        "http2/hpack",
+    ],
+    licences = ["BSD-3-Clause"],
+    module = "golang.org/x/net",
+    version = "v0.0.0-20210614182718-04defd469f4e",
+    deps = [
+        ":x_text",
+    ],
+)
+
+go_module(
+    name = "x_text",
+    install = [
+        "secure/bidirule",
+        "unicode/bidi",
+        "unicode/norm",
+    ],
+    licences = ["BSD-3-Clause"],
+    module = "golang.org/x/text",
+    version = "v0.3.6",
 )

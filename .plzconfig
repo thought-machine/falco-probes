@@ -9,6 +9,7 @@
 version = 16.1.1
 
 [go]
+importpath = github.com/thought-machine/falco-probes
 gotool = //third_party/lang:go_tool|go
 
 [alias "lint"]
