@@ -2,3 +2,4 @@
 plz-out
 .plzconfig.local
 dist/
+*.txt
