@@ -1,6 +1,7 @@
 package amazonlinux2
 
 import (
+	"fmt"
 	"io/ioutil"
 	"strings"
 
@@ -34,12 +35,23 @@ func addSourcesAndConfiguration(dockerClient *docker.Client, kp *operatingsystem
 	kp.KernelConfiguration = dockerClient.MustCreateVolume()
 	kp.KernelSources = dockerClient.MustCreateVolume()
 
-	// TODO: use http.Get lib to download from repository directly and extract into a docker volume.
-	_, err := dockerClient.Run(
+	yumDownloaderImage, err := BuildYumDownloader(dockerClient)
+	if err != nil {
+		return fmt.Errorf("could not build falco-driver-loader: %w", err)
+	}
+
+	script := `
+set -euo pipefail
+yumdownloader kernel-%s kernel-devel-%s
+rpm2cpio kernel-%s.$(uname -m).rpm | cpio --extract --make-directories
+rpm2cpio kernel-devel-%s.$(uname -m).rpm | cpio --extract --make-directories
+`
+
+	_, err = dockerClient.Run(
 		&docker.RunOpts{
-			Image:      "docker.io/library/amazonlinux:2",
-			Entrypoint: []string{"yum"},
-			Cmd:        []string{"-y", "install", "kernel-devel-" + kp.Name, "kernel-" + kp.Name},
+			Image:      yumDownloaderImage,
+			Entrypoint: []string{"/bin/bash"},
+			Cmd:        []string{"-c", fmt.Sprintf(script, kp.Name, kp.Name, kp.Name, kp.Name)},
 			Volumes: map[operatingsystem.Volume]string{
 				kp.KernelSources:       "/usr/src/",
 				kp.KernelConfiguration: "/lib/modules/",

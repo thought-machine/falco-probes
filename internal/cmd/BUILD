@@ -4,7 +4,10 @@ go_library(
         "flags.go",
         "logging.go",
     ],
-    visibility = ["//cmd/..."],
+    visibility = [
+        "//build/...",
+        "//cmd/...",
+    ],
     deps = [
         "//internal/logging",
         "//third_party/go:jessevdk_flags",

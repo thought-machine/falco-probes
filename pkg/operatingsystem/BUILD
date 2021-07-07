@@ -5,6 +5,7 @@ go_library(
         "operating-system.go",
     ],
     visibility = [
+        "//build/...",
         "//cmd/...",
         "//pkg/...",
     ],

@@ -1,7 +1,10 @@
 go_library(
     name = "resolver",
     srcs = ["resolver.go"],
-    visibility = ["//cmd/..."],
+    visibility = [
+        "//build/...",
+        "//cmd/...",
+    ],
     deps = [
         "//pkg/docker",
         "//pkg/operatingsystem",
