@@ -24,6 +24,7 @@ go_test(
     size = "large",
     srcs = [
         "docker_test.go",
+        "logs_test.go",
     ],
     external = True,
     deps = [

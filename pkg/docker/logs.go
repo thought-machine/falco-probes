@@ -19,14 +19,8 @@ func handleContainerLogs(
 
 	out := bytes.Buffer{}
 	for scanner.Scan() {
-		b := scanner.Bytes()
-		if len(b) <= 8 {
-			continue
-		}
-		// The first 8 bytes are a header as described in
-		// https://github.com/moby/moby/issues/7375#issuecomment-51462963
-		// so we can strip them out.
-		line := b[8:]
+		line := scanner.Bytes()
+
 		if bytes.ContainsRune(line, '\r') {
 			// skip lines with carriage returns
 			continue

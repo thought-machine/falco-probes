@@ -41,7 +41,7 @@ func (c *Client) Run(opts *RunOpts) (containerOut string, err error) {
 		Entrypoint: opts.Entrypoint,
 		Cmd:        opts.Cmd,
 		Volumes:    getContainerConfigVolumesFromOpts(opts.Volumes),
-		Tty:        false,
+		Tty:        true,
 		WorkingDir: opts.WorkingDir,
 		Env:        envMapToSlice(opts.Env),
 	}, getHostConfigFromOpts(opts.Volumes), nil, nil, "")
