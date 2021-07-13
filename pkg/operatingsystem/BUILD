@@ -4,5 +4,8 @@ go_library(
         "kernel-package.go",
         "operating-system.go",
     ],
-    visibility = ["//pkg/..."],
+    visibility = [
+        "//cmd/...",
+        "//pkg/...",
+    ],
 )

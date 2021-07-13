@@ -3,8 +3,8 @@ sh_cmd(
     srcs = ["go.sh"],
     cmd = """
 source $(out_location //scripts/util)
-export GO_ROOT=$(out_location //third_party/lang:go_tool)
-export GO_FMT="\\\\$GO_ROOT/bin/gofmt"
+export GOROOT=$(out_location //third_party/lang:go_tool)
+export GO_FMT="\\\\$GOROOT/bin/gofmt"
 source $SRCS
     """,
     data = [

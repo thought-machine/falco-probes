@@ -1,6 +1,7 @@
 package amazonlinux2
 
 import (
+	"io/ioutil"
 	"strings"
 
 	"github.com/thought-machine/falco-probes/pkg/docker"
@@ -53,17 +54,32 @@ func addSourcesAndConfiguration(dockerClient *docker.Client, kp *operatingsystem
 }
 
 func addOSRelease(dockerClient *docker.Client, kp *operatingsystem.KernelPackage) error {
-	out, err := dockerClient.Run(
+	osReleaseVol := dockerClient.MustCreateVolume()
+	_, err := dockerClient.Run(
 		&docker.RunOpts{
 			Image:      "docker.io/library/amazonlinux:2",
-			Entrypoint: []string{"cat"},
-			Cmd:        []string{"/etc/os-release"},
+			Entrypoint: []string{"cp"},
+			Cmd:        []string{"/etc/os-release", "/host/etc/os-release"},
+			Volumes: map[operatingsystem.Volume]string{
+				osReleaseVol: "/host/etc/",
+			},
 		},
 	)
 	if err != nil {
 		return err
 	}
-	kp.OSRelease = operatingsystem.FileContents(out)
+
+	fileReader, err := dockerClient.GetFileFromVolume(osReleaseVol, "/host/etc/", "/host/etc/os-release")
+	if err != nil {
+		return err
+	}
+
+	fileContents, err := ioutil.ReadAll(fileReader)
+	if err != nil {
+		return err
+	}
+
+	kp.OSRelease = operatingsystem.FileContents(fileContents)
 
 	return nil
 }

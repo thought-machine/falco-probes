@@ -132,6 +132,7 @@ go_module(
         "api",
         "client",
         "pkg/stdcopy",
+        "pkg/jsonmessage",
         "errdefs",
     ],
     licences = ["Apache-2.0"],
@@ -143,6 +144,8 @@ go_module(
         ":docker_distribution",
         ":docker_units",
         ":gogo_protobuf",
+        ":moby_term",
+        ":morikuni_aec",
         ":opencontainers_imagespec",
         ":sirupsen_logrus",
     ],
@@ -354,4 +357,38 @@ go_module(
     licences = ["BSD-3-Clause"],
     module = "golang.org/x/text",
     version = "v0.3.6",
+)
+
+go_module(
+    name = "jessevdk_flags",
+    licences = ["BSD-3-Clause"],
+    module = "github.com/jessevdk/go-flags",
+    version = "v1.5.0",
+    deps = [":x_sys"],
+)
+
+go_module(
+    name = "moby_term",
+    licences = ["Apache-2.0"],
+    module = "github.com/moby/term",
+    version = "v0.0.0-20210619224110-3f7ff695adc6",
+    deps = [":x_sys"],
+)
+
+go_module(
+    name = "morikuni_aec",
+    licences = ["MIT"],
+    module = "github.com/morikuni/aec",
+    version = "v1.0.0",
+)
+
+go_module(
+    name = "rs_zerolog",
+    install = [
+        ".",
+        "internal/json",
+    ],
+    licences = ["MIT"],
+    module = "github.com/rs/zerolog",
+    version = "v1.23.0",
 )
