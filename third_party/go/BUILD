@@ -338,6 +338,7 @@ go_module(
         "internal/socks",
         "http2",
         "http2/hpack",
+        "context/ctxhttp",
     ],
     licences = ["BSD-3-Clause"],
     module = "golang.org/x/net",
@@ -391,4 +392,47 @@ go_module(
     licences = ["MIT"],
     module = "github.com/rs/zerolog",
     version = "v1.23.0",
+)
+
+go_module(
+    name = "google_github",
+    install = ["github"],
+    licences = ["BSD-3-Clause"],
+    module = "github.com/google/go-github/v37",
+    version = "v37.0.0",
+    deps = [
+        ":google_querystring",
+        ":x_crypto",
+    ],
+)
+
+go_module(
+    name = "x_crypto",
+    install = [
+        "openpgp/...",
+        "cast5",
+    ],
+    licences = ["BSD-3-Clause"],
+    module = "golang.org/x/crypto",
+    version = "v0.0.0-20210711020723-a769d52b0f97",
+)
+
+go_module(
+    name = "google_querystring",
+    install = ["query"],
+    licences = ["BSD-3-Clause"],
+    module = "github.com/google/go-querystring",
+    version = "v1.1.0",
+)
+
+go_module(
+    name = "x_oauth2",
+    install = [
+        ".",
+        "internal",
+    ],
+    licences = ["BSD-3-Clause"],
+    module = "golang.org/x/oauth2",
+    version = "v0.0.0-20210628180205-a41e5a781914",
+    deps = [":x_net"],
 )
