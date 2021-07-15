@@ -8,6 +8,7 @@ import (
 	"github.com/thought-machine/falco-probes/internal/logging"
 	"github.com/thought-machine/falco-probes/pkg/docker"
 	"github.com/thought-machine/falco-probes/pkg/falcodriverbuilder"
+	"github.com/thought-machine/falco-probes/pkg/operatingsystem"
 	"github.com/thought-machine/falco-probes/pkg/operatingsystem/resolver"
 )
 
@@ -63,7 +64,7 @@ func main() {
 	// use a waitgroup to wait for goroutines to complete.
 	var wg sync.WaitGroup
 	// errs to collect errors from all the goroutines.
-	errs := make([]error, len(kernelPackageNames))
+	errs := make(chan error, len(kernelPackageNames))
 
 	for _, kernelPackageName := range kernelPackageNames {
 		kernelPackageName := kernelPackageName
@@ -72,45 +73,76 @@ func main() {
 			defer wg.Done()
 			limiter <- struct{}{}
 			defer func() { <-limiter }()
-
-			log.Info().Str("kernel_package", kernelPackageName).Msg("Getting kernel package")
-
-			kernelPackage, err := operatingSystem.GetKernelPackageByName(kernelPackageName)
-			if err != nil {
-				errs = append(errs, fmt.Errorf("could not get kernel package '%s': %w", kernelPackageName, err))
-				return
+			if err := buildProbesForKernelPackageName(
+				cli,
+				operatingSystem,
+				kernelPackageName,
+				FalcoVersions,
+			); err != nil {
+				errs <- err
 			}
-
-			log.Info().Str("kernel_package", kernelPackage.Name).Msg("Got kernel package")
-
-			for _, falcoVersion := range FalcoVersions {
-				log.Info().Str("kernel_package", kernelPackage.Name).Str("falco_version", falcoVersion).Msg("Building Falco eBPF probe")
-
-				if err := falcodriverbuilder.BuildEBPFProbe(
-					cli,
-					falcoVersion,
-					operatingSystem,
-					kernelPackage,
-				); err != nil {
-					errs = append(errs, fmt.Errorf("could not build eBPF probe for '%s': %w", kernelPackage.Name, err))
-					break
-				}
-			}
-
-			cli.MustRemoveVolumes(
-				kernelPackage.KernelSources,
-				kernelPackage.KernelConfiguration,
-			)
 		}()
 	}
 
 	wg.Wait()
+	close(errs)
 
-	if len(errs) > 0 {
-		for _, err := range errs {
-			log.Error().Err(err)
+	handleErrs(errs)
+}
+
+func buildProbesForKernelPackageName(
+	dockerCli *docker.Client,
+	operatingSystem operatingsystem.OperatingSystem,
+	kernelPackageName string,
+	falcoVersions []string,
+) error {
+	log.Info().
+		Str("kernel_package", kernelPackageName).
+		Msg("Getting kernel package")
+
+	kernelPackage, err := operatingSystem.GetKernelPackageByName(kernelPackageName)
+	if err != nil {
+		err = fmt.Errorf("could not get kernel package '%s': %w", kernelPackageName, err)
+		return err
+	}
+	defer dockerCli.MustRemoveVolumes(
+		kernelPackage.KernelSources,
+		kernelPackage.KernelConfiguration,
+	)
+
+	log.Info().
+		Str("kernel_package", kernelPackage.Name).
+		Msg("Got kernel package")
+
+	for _, falcoVersion := range falcoVersions {
+		log.Info().
+			Str("kernel_package", kernelPackage.Name).
+			Str("falco_version", falcoVersion).
+			Msg("Building Falco eBPF probe")
+
+		if err := falcodriverbuilder.BuildEBPFProbe(
+			dockerCli,
+			falcoVersion,
+			operatingSystem,
+			kernelPackage,
+		); err != nil {
+			err = fmt.Errorf("could not build eBPF probe for '%s': %w", kernelPackage.Name, err)
+			return err
 		}
-		log.Fatal().Msg("errors encountered")
 	}
 
+	return nil
+}
+
+func handleErrs(errs chan error) {
+	hasErrors := false
+	for err := range errs {
+		if err != nil {
+			log.Error().Err(err)
+			hasErrors = true
+		}
+	}
+	if hasErrors {
+		log.Fatal().Msg("errors encountered")
+	}
 }
