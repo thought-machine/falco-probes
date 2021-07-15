@@ -93,7 +93,7 @@ func main() {
 					kernelPackage,
 				); err != nil {
 					errs = append(errs, fmt.Errorf("could not build eBPF probe for '%s': %w", kernelPackage.Name, err))
-					return
+					break
 				}
 			}
 
