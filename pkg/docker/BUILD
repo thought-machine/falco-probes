@@ -9,6 +9,7 @@ go_library(
         "volume.go",
     ],
     visibility = [
+        "//build/...",
         "//cmd/...",
         "//pkg/...",
     ],
