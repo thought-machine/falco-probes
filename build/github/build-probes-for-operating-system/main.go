@@ -63,7 +63,7 @@ func main() {
 	// use a waitgroup to wait for goroutines to complete.
 	var wg sync.WaitGroup
 	// errs to collect errors from all the goroutines.
-	errs := []error{}
+	errs := make([]error, len(kernelPackageNames))
 
 	for _, kernelPackageName := range kernelPackageNames {
 		kernelPackageName := kernelPackageName
