@@ -1,0 +1,22 @@
+name: build-probes
+on: [push]
+jobs:
+  generate-jobs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - run: "./pleasew run //build/github/generate-operating-systems -- --out_file plz-out/github/operating-systems.json"
+    - id: set-operating-systems
+      run: echo "::set-output name=operating-systems::$(<plz-out/github/operating-systems.json)"
+    outputs:
+      operating-systems: ${{ steps.set-operating-systems.outputs.operating-systems }}
+
+  build-probes:
+    needs: generate-jobs
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        operating-system: ${{ fromJson(needs.generate-jobs.outputs.operating-systems) }}
+    steps:
+      - uses: actions/checkout@v2
+      - run: ./pleasew run //build/github/build-probes-for-operating-system -- ${{ matrix.operating-system }}

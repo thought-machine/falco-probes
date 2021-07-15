@@ -3,6 +3,7 @@ go_library(
     srcs = [
         "kernel-package.go",
         "operating-system.go",
+        "yum-downloader.go",
     ],
     visibility = [
         "//pkg/...",

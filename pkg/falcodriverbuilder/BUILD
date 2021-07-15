@@ -1,11 +1,16 @@
 go_library(
     name = "falcodriverbuilder",
     srcs = [
+        "build-ebpf-probe.go",
         "falcodriverbuilder.go",
     ],
     resources = ["falco-driver-builder.Dockerfile"],
-    visibility = ["//cmd/..."],
+    visibility = [
+        "//build/...",
+        "//cmd/...",
+    ],
     deps = [
+        "//internal/logging",
         "//pkg/docker",
         "//pkg/operatingsystem",
     ],
