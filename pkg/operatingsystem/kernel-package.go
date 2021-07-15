@@ -1,5 +1,10 @@
 package operatingsystem
 
+import (
+	"fmt"
+	"regexp"
+)
+
 // KernelPackage represents the required inputs for build a Falco Driver for a Kernel Package.
 type KernelPackage struct {
 	// OperatingSystem is the name of the Operating System that this KernelPackage belongs to.
@@ -18,6 +23,26 @@ type KernelPackage struct {
 	KernelConfiguration Volume
 	// KernelSources is the volume to mount as `/usr/src/`.
 	KernelSources Volume
+}
+
+var kernelVersionRe = regexp.MustCompile(`^#(\d+)`)
+
+// ProbeName returns the ProbeName expected by Falco.
+// interpreted from: https://github.com/falcosecurity/falco/blob/0.29.1/scripts/falco-driver-loader#L449
+func (kp *KernelPackage) ProbeName() string {
+	driverName := "falco"
+	targetID := kp.OperatingSystem
+	kernelRelease := kp.KernelRelease
+	// from: $(uname -v | sed 's/#\([[:digit:]]\+\).*/\1/')
+	// this sed command is extracting the first set of digits from the KernelVersion after the #. e.g.
+	// `#151-Ubuntu SMP Fri Jun 18 19:21:19 UTC 2021` becomes `151`.
+	kernelVersion := ""
+	matches := kernelVersionRe.FindStringSubmatch(kp.KernelVersion)
+	if len(matches) == 2 {
+		kernelVersion = matches[1]
+	}
+
+	return fmt.Sprintf("%s_%s_%s_%s", driverName, targetID, kernelRelease, kernelVersion)
 }
 
 // FileContents represents the contents of a file.
