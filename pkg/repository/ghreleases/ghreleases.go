@@ -3,6 +3,9 @@ package ghreleases
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
+	"sync"
 
 	"github.com/google/go-github/v37/github"
 	"github.com/thought-machine/falco-probes/internal/logging"
@@ -24,11 +27,12 @@ type GHReleases struct {
 	ghClient *github.Client
 	owner    string
 	repo     string
+
+	releasesMu sync.Mutex
 }
 
 // MustGHReleases returns a new GitHub Releases repository, fatally erroring if an error is encountered.
 func MustGHReleases(opts *Opts) *GHReleases {
-
 	ghClient := newGHClient(opts.Token)
 
 	return &GHReleases{
@@ -39,15 +43,48 @@ func MustGHReleases(opts *Opts) *GHReleases {
 }
 
 // PublishProbe implmements repository.Repository.PublishProbe for GitHub Releases.
-func (ghr *GHReleases) PublishProbe(driverVersion string, probeName string, probePath string) error {
-	// TODO: unimplimented
-	return fmt.Errorf("unimplemented")
+func (ghr *GHReleases) PublishProbe(driverVersion string, probePath string) error {
+	probeFileName := filepath.Base(probePath)
+	release, err := ghr.ensureReleaseForDriverVersion(driverVersion)
+	if err != nil {
+		return err
+	}
+
+	probeFile, err := os.Open(probePath)
+	if err != nil {
+		return err
+	}
+	defer probeFile.Close()
+
+	ctx := context.Background()
+	asset, _, err := ghr.ghClient.Repositories.UploadReleaseAsset(ctx, ghr.owner, ghr.repo, release.GetID(), &github.UploadOptions{
+		Name: probeFileName,
+	}, probeFile)
+	if err != nil {
+		// TODO: return err when we are using IsAlreadyMirrored()
+		log.Warn().
+			Str("driver_version", driverVersion).
+			Str("probe_file_name", probeFileName).
+			Str("path", probePath).
+			Err(err).
+			Msg("could not upload probe")
+		return nil
+	}
+
+	log.Info().
+		Str("download_url", *asset.BrowserDownloadURL).
+		Str("driver_version", driverVersion).
+		Str("probe_file_name", probeFileName).
+		Str("path", probePath).
+		Msg("uploaded probe")
+
+	return nil
 }
 
 // IsAlreadyMirrored implmements repository.Repository.IsAlreadyMirrored for GitHub Releases.
-func (ghr *GHReleases) IsAlreadyMirrored(driverVersion string, probeName string) error {
+func (ghr *GHReleases) IsAlreadyMirrored(driverVersion string, probeName string) bool {
 	// TODO: unimplimented
-	return fmt.Errorf("unimplemented")
+	return false
 }
 
 func newGHClient(token string) *github.Client {
@@ -58,4 +95,32 @@ func newGHClient(token string) *github.Client {
 	tc := oauth2.NewClient(ctx, ts)
 
 	return github.NewClient(tc)
+}
+
+func (ghr *GHReleases) ensureReleaseForDriverVersion(driverVersion string) (*github.RepositoryRelease, error) {
+	// use a mutex to ensure that this function is only called once at a time as it is not thread safe.
+	// i.e. a release that doesn't exist may result in multiple goroutines trying to create it at once.
+	ghr.releasesMu.Lock()
+	defer ghr.releasesMu.Unlock()
+
+	ctx := context.Background()
+	releases, _, err := ghr.ghClient.Repositories.ListReleases(ctx, ghr.owner, ghr.repo, &github.ListOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("could not list releases: %w", err)
+	}
+	for _, release := range releases {
+		if *release.Name == driverVersion {
+			return release, nil
+		}
+	}
+
+	// release does not exist, create it
+	// truncate the driverVersion for the release tag as "branch or tag names consisting of 40 hex characters are not allowed."
+	tagName := driverVersion[:8]
+	release, _, err := ghr.ghClient.Repositories.CreateRelease(ctx, ghr.owner, ghr.repo, &github.RepositoryRelease{
+		Name:    &driverVersion,
+		TagName: &tagName,
+	})
+
+	return release, err
 }

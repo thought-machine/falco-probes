@@ -37,7 +37,7 @@ func main() {
 		log.Fatal().Err(err).Msg("could not get kernel package")
 	}
 
-	if err := falcodriverbuilder.BuildEBPFProbe(
+	if _, _, err := falcodriverbuilder.BuildEBPFProbe(
 		cli,
 		opts.FalcoVersion,
 		operatingSystem,

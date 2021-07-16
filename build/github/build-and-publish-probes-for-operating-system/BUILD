@@ -1,5 +1,5 @@
 go_binary(
-    name = "build-probes-for-operating-system",
+    name = "build-and-publish-probes-for-operating-system",
     srcs = ["main.go"],
     deps = [
         "//internal/cmd",
@@ -8,5 +8,7 @@ go_binary(
         "//pkg/falcodriverbuilder",
         "//pkg/operatingsystem",
         "//pkg/operatingsystem/resolver",
+        "//pkg/repository",
+        "//pkg/repository/ghreleases",
     ],
 )
