@@ -22,11 +22,18 @@ The process is as follows:
 5. Create a pull request through the UI, please request a review from the Thought Machine Organisation members and apply any relevant labels.
 6. Once discussed and approved, the UI will be used to squash and merge the PR onto master by a Thought Machine Organisation member.
 7. Once merged the remote branch should be deleted.
-## Future Considerations
-- Should interest in contributing increase, the Thought Machine Organisation members may consider implementing a CLA/DCO as needed.
 
-## Working in the falco-probes repository
+### Adding New Operating Systems
+
+1. Add a new Golang package for the operating system under `./pkg/operatingsystem`.
+2. Implement the `operatingsystem.OperatingSystem` interface, see `./pkg/operatingsystem/amazonlinux2` for an example.
+3. Add your new operating system to the `OperatingSystems` map in `./pkg/resolver/resolver.go`.
+
+## Working In the falco-probes Repository
 Here's some information that might be helpful while working on PRs:
 - The repository layout largely maps to the structure of [golang-standards/project-layout](https://github.com/golang-standards/project-layout#standard-go-project-layout).
 - The output of our [Releases](https://github.com/thought-machine/falco-probes/releases) are the Falco probe files published as assets (as detailed in [REPOSITORY_DESIGN.md](https://github.com/thought-machine/falco-probes/blob/master/docs/REPOSITORY_DESIGN.md)), rather a package of this repository's code.
 - The automated [workflows](https://github.com/thought-machine/falco-probes/tree/master/.github/workflows) involved to create each [Release](https://github.com/thought-machine/falco-probes/releases) can be seen in [Actions](https://github.com/thought-machine/falco-probes/actions).
+
+## Future Considerations
+- Should interest in contributing increase, the Thought Machine Organisation members may consider implementing a CLA/DCO as needed.
