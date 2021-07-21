@@ -10,3 +10,13 @@ go_library(
         "//pkg/...",
     ],
 )
+
+go_test(
+    name = "operatingsystem_test",
+    srcs = ["kernel-package_test.go"],
+    external = True,
+    deps = [
+        ":operatingsystem",
+        "//third_party/go:stretchr_testify",
+    ],
+)
