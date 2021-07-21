@@ -19,20 +19,20 @@ Availability and latency/performance of the repository are not prioritised, prim
 To achieve the aforementioned goals, we can leverage Github Releases as our probe repository, serving compiled probes to consumers as downloadable release assets, enabling us to keep the entirety of the source-code, compilation process and hosting of probes consolidated together on a single, trusted and widely used platform. 
 
 Releases can be organised as follows:
-- Each new version of the Falco driver can be associated to a single github release, named to match the [name of the driver version](https://github.com/falcosecurity/test-infra/tree/master/driverkit/config).
+- Each new version of the Falco driver can be associated to a single github release, named to match the [name of the driver version](https://github.com/falcosecurity/test-infra/tree/master/driverkit/config). This is truncated to 8 characters in order to meet GitHub's tag length limitations.
 - Each compiled probe can be uploaded as an asset to the release of the driver version the probe was compiled against, named based on the runtime characteristics of the OS/kernel.
 
 E.g
 ```
-- 17f5df52a7d9ed6bb12d3b1768460def8439936d
+- 17f5df52 (17f5df52a7d9ed6bb12d3b1768460def8439936d)
     - falco_amazonlinux2_4.14.232-177.418.amzn2.x86_64_1.o
     - falco_amazonlinux2_4.14.225-169.362.amzn2.x86_64_1.o
     - falco_amazonlinux2_4.14.181-142.260.amzn2.x86_64_1.o
-- 2aa88dcf6243982697811df4c1b484bcbe9488a2
+- 2aa88dcf (2aa88dcf6243982697811df4c1b484bcbe9488a2)
     - falco_amazonlinux2_4.14.232-177.418.amzn2.x86_64_1.o
     - falco_amazonlinux2_4.14.225-169.362.amzn2.x86_64_1.o
     - falco_amazonlinux2_4.14.181-142.260.amzn2.x86_64_1.o
-- 5c0b863ddade7a45568c0ac97d037422c9efb750
+- 5c0b863d (5c0b863ddade7a45568c0ac97d037422c9efb750)
     - falco_amazonlinux2_4.14.232-177.418.amzn2.x86_64_1.o
     - falco_amazonlinux2_4.14.225-169.362.amzn2.x86_64_1.o
     - falco_amazonlinux2_4.14.181-142.260.amzn2.x86_64_1.o
@@ -40,10 +40,10 @@ E.g
 ```
 
 To download a particular probe based on the driver version/OS/kernel version, you would use the following URL
-`https://github.com/thought-machine/falco-probes/releases/download/$DRIVER_VERSION/$PROBE_FILENAME.o`.
+`https://github.com/thought-machine/falco-probes/releases/download/$FIRST_8_CHARACTERS_OF_DRIVER_VERSION/$PROBE_FILENAME.o`.
 
 For example, to download the first probe listed above via curl you would simply need to:
-`curl -L https://github.com/thought-machine/falco-probes/releases/download/17f5df52a7d9ed6bb12d3b1768460def8439936d/falco_amazonlinux2_4.14.232-177.418.amzn2.x86_64_1.o > falco_amazonlinux2_4.14.232-177.418.amzn2.x86_64_1.o`
+`curl -L https://github.com/thought-machine/falco-probes/releases/download/17f5df52/falco_amazonlinux2_4.14.232-177.418.amzn2.x86_64_1.o > falco_amazonlinux2_4.14.232-177.418.amzn2.x86_64_1.o`
 
 As new OS/kernel version combinations become available, all prior releases can be updated in parallel to include assets for each newly compiled probe. 
 
@@ -77,6 +77,12 @@ With any stored asset, a digest should be produced to enable consumers to verify
 ## Limits or Restrictions on Releases
 
 The only documented constraint associated with releases is a [max file-size constraint of 2GB](https://docs.github.com/en/github/administering-a-repository/releasing-projects-on-github/about-releases#storage-and-bandwidth-quotas). Since we will be producing large releases, and editing individual releases multiple times, we've [deployed a crack team of hamsters to stress-test releases](https://github.com/sHesl/release-loop/actions) by continually updating an existing release with new assets. If there are any undocumented restrictions around the number of edits you can apply to a release, or the number of files associated to a single release, they will find it!
+
+During the implementation of this, we discovered a limitation on GitHub tags where tags cannot be 40 characters in length:
+```
+422 Validation Failed [{Resource:Release Field:pre_receive Code:custom Message:pre_receive Sorry, branch or tag names consisting of 40 hex characters are not allowed.} {Resource:Release Field: Code:custom Message:Published releases must have a valid tag}]
+```
+To work around this we have truncated the originally proposed tag to 8 characters.
 
 ## Future Considerations
 

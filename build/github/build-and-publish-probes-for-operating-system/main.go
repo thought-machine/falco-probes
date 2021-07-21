@@ -10,6 +10,8 @@ import (
 	"github.com/thought-machine/falco-probes/pkg/falcodriverbuilder"
 	"github.com/thought-machine/falco-probes/pkg/operatingsystem"
 	"github.com/thought-machine/falco-probes/pkg/operatingsystem/resolver"
+	"github.com/thought-machine/falco-probes/pkg/repository"
+	"github.com/thought-machine/falco-probes/pkg/repository/ghreleases"
 )
 
 var log = logging.Logger
@@ -27,7 +29,8 @@ var FalcoVersions = []string{
 }
 
 type opts struct {
-	Parallelism int `long:"parallelism" description:"The amount of probes to compile at the same time" default:"4"`
+	Parallelism int             `long:"parallelism" description:"The amount of probes to compile at the same time" default:"4"`
+	GHReleases  ghreleases.Opts `group:"github_releases" namespace:"github_releases"`
 	Positional  struct {
 		OperatingSystem string `positional-arg-name:"operating_system"`
 	} `positional-args:"yes" required:"true"`
@@ -38,6 +41,7 @@ func main() {
 	cmd.MustParseFlags(opts)
 
 	cli := docker.MustClient()
+	ghReleases := ghreleases.MustGHReleases(&opts.GHReleases)
 
 	log.Info().
 		Str("operating_system", opts.Positional.OperatingSystem).
@@ -75,6 +79,7 @@ func main() {
 			defer func() { <-limiter }()
 			if err := buildProbesForKernelPackageName(
 				cli,
+				ghReleases,
 				operatingSystem,
 				kernelPackageName,
 				FalcoVersions,
@@ -92,6 +97,7 @@ func main() {
 
 func buildProbesForKernelPackageName(
 	dockerCli *docker.Client,
+	repo repository.Repository,
 	operatingSystem operatingsystem.OperatingSystem,
 	kernelPackageName string,
 	falcoVersions []string,
@@ -102,8 +108,7 @@ func buildProbesForKernelPackageName(
 
 	kernelPackage, err := operatingSystem.GetKernelPackageByName(kernelPackageName)
 	if err != nil {
-		err = fmt.Errorf("could not get kernel package '%s': %w", kernelPackageName, err)
-		return err
+		return fmt.Errorf("could not get kernel package '%s': %w", kernelPackageName, err)
 	}
 	defer dockerCli.MustRemoveVolumes(
 		kernelPackage.KernelSources,
@@ -120,14 +125,18 @@ func buildProbesForKernelPackageName(
 			Str("falco_version", falcoVersion).
 			Msg("Building Falco eBPF probe")
 
-		if err := falcodriverbuilder.BuildEBPFProbe(
+		falcoDriverVersion, probePath, err := falcodriverbuilder.BuildEBPFProbe(
 			dockerCli,
 			falcoVersion,
 			operatingSystem,
 			kernelPackage,
-		); err != nil {
-			err = fmt.Errorf("could not build eBPF probe for '%s': %w", kernelPackage.Name, err)
-			return err
+		)
+		if err != nil {
+			return fmt.Errorf("could not build eBPF probe for '%s': %w", kernelPackage.Name, err)
+		}
+
+		if err := repo.PublishProbe(falcoDriverVersion, probePath); err != nil {
+			return fmt.Errorf("could not publish probe: %w", err)
 		}
 	}
 

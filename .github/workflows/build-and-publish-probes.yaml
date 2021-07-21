@@ -1,4 +1,4 @@
-name: build-probes
+name: build-and-publish-probes
 on: [push]
 jobs:
   generate-jobs:
@@ -11,7 +11,7 @@ jobs:
     outputs:
       operating-systems: ${{ steps.set-operating-systems.outputs.operating-systems }}
 
-  build-probes:
+  build-and-publish-probes:
     needs: generate-jobs
     runs-on: ubuntu-latest
     strategy:
@@ -19,4 +19,6 @@ jobs:
         operating-system: ${{ fromJson(needs.generate-jobs.outputs.operating-systems) }}
     steps:
       - uses: actions/checkout@v2
-      - run: ./pleasew run //build/github/build-probes-for-operating-system -- ${{ matrix.operating-system }}
+      - run: ./pleasew run //build/github/build-and-publish-probes-for-operating-system -- ${{ matrix.operating-system }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

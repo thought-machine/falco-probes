@@ -1,9 +1,8 @@
 package cmd
 
 import (
-	"log"
 	"os"
-	"path/filepath"
+	"path"
 
 	"github.com/jessevdk/go-flags"
 	"github.com/thought-machine/falco-probes/internal/logging"
@@ -11,11 +10,16 @@ import (
 
 // MustParseFlags parses the given application options from command line arguments.
 func MustParseFlags(opts interface{}) {
-	flagParser := flags.NewNamedParser(filepath.Base(os.Args[0]), flags.Default)
+	appName := path.Base(os.Args[0])
+	flagParser := flags.NewNamedParser(appName, flags.Default)
+
+	flagParser.EnvNamespaceDelimiter = "_"
+	flagParser.NamespaceDelimiter = "_"
 
 	loggingOpts := &LoggingOpts{}
 	flagParser.AddGroup("logging options", "logging options", loggingOpts)
-	flagParser.AddGroup("application options", "application options", opts)
+
+	flagParser.AddGroup(appName+" options", "", opts)
 
 	args, err := flagParser.Parse()
 
@@ -23,7 +27,7 @@ func MustParseFlags(opts interface{}) {
 		if flagsErr, ok := err.(*flags.Error); ok {
 			handleFlagsErr(flagsErr)
 		}
-		log.Fatal(err)
+		logging.Logger.Fatal().Err(err).Msg("could not parse flags")
 	}
 
 	if len(args) > 0 {

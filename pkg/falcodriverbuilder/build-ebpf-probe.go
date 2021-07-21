@@ -10,24 +10,24 @@ import (
 
 var log = logging.Logger
 
-// BuildEBPFProbe builds a Falco eBPF probe with the given falcoVersion, operatingsystem and kernelPackageName
+// BuildEBPFProbe builds a Falco eBPF probe with the given falcoVersion, operatingsystem and kernelPackageName, returning the falcoDriverVersio and outProbePath.
 func BuildEBPFProbe(
 	cli *docker.Client,
 	falcoVersion string,
 	os operatingsystem.OperatingSystem,
 	kernelPackage *operatingsystem.KernelPackage,
-) error {
+) (string, string, error) {
 	log.Info().
 		Str("falco_version", falcoVersion).
 		Msg("Building falco-driver-builder")
 	falcoDriverBuilderImage, err := BuildImage(cli, falcoVersion)
 	if err != nil {
-		return fmt.Errorf("could not build falco-driver-loader: %w", err)
+		return "", "", fmt.Errorf("could not build falco-driver-loader: %w", err)
 	}
 	falcoDriverVersion, err := GetDriverVersion(cli, falcoDriverBuilderImage)
 	if err != nil {
 		log.Fatal().Err(err).Msg("could not get falco driver version")
-		return fmt.Errorf("could not get falco driver version: %w", err)
+		return "", "", fmt.Errorf("could not get falco driver version: %w", err)
 	}
 	log.Info().
 		Str("falco_version", falcoVersion).
@@ -68,23 +68,23 @@ func BuildEBPFProbe(
 	)
 	if err != nil {
 		log.Error().Str("build-output", buildOut)
-		return fmt.Errorf("could not build falco probe: %w", err)
+		return "", "", fmt.Errorf("could not build falco probe: %w", err)
 	}
 
 	probeName, err := GetProbeNameFromBuildOutput(buildOut)
 	if err != nil {
 		log.Error().Str("build-output", buildOut)
-		return fmt.Errorf("could not build falco probe: %w", err)
+		return "", "", fmt.Errorf("could not build falco probe: %w", err)
 	}
 
 	probeReader, err := ExtractProbeFromVolume(cli, builtProbeVolume, probeName)
 	if err != nil {
-		return fmt.Errorf("could not extract probe from built probe volume: %w", err)
+		return "", "", fmt.Errorf("could not extract probe from built probe volume: %w", err)
 	}
 
 	outProbePath, err := WriteProbeToFile(falcoDriverVersion, probeName, probeReader)
 	if err != nil {
-		return fmt.Errorf("could not write probe to file :%w", err)
+		return "", "", fmt.Errorf("could not write probe to file :%w", err)
 	}
 
 	log.Info().
@@ -95,5 +95,5 @@ func BuildEBPFProbe(
 		etcVolume,
 		builtProbeVolume,
 	)
-	return nil
+	return falcoDriverVersion, outProbePath, nil
 }
