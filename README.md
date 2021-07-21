@@ -1,6 +1,13 @@
 # [Falco](https://github.com/falcosecurity/falco) Probes
 
-This project automates the building and mirroring of eBPF kernel probes for use by [Falco](https://github.com/falcosecurity/falco) as a [Driver](https://falco.org/blog/choosing-a-driver/#ebpf-probe) to consume system call information which feeds its runtime threat detection abilities.
+This project automates the building and mirroring of eBPF kernel probes for use by [Falco](https://github.com/falcosecurity/falco) as an [*eBPF probe*](https://falco.org/blog/choosing-a-driver/#ebpf-probe) driver to consume system call information which feeds its runtime threat detection abilities.
+
+## Features
+Falco Security provide [falcosecurity/driverkit](https://github.com/falcosecurity/driverkit) for building Falco drivers and [download.falco.org/driver](https://download.falco.org/driver) which mirrors only Falco [*kernel module*](https://falco.org/blog/choosing-a-driver/#kernel-module) drivers built from [falcosecurity/test-infra](https://github.com/falcosecurity/test-infra). This didn't quite meet all of our requirements, thus the birth of this project with the following features:
+
+ * Falco eBPF probe drivers are built and available to [download](https://github.com/thought-machine/falco-probes/releases).
+ * Mirrored Falco eBPF probe driver hashes do not change as we only upload probes once.
+ * Probes for new kernel versions are automatically built as we dynamically obtain a list of available kernel versions at build time.
 
 ## Getting Started
 
@@ -10,7 +17,11 @@ To obtain an eBPF kernel probe, you can:
 
 1. Determine the Falco Driver version that your version of Falco is using:
 ```bash
-$ FALCO_VERSION=0.29.1 docker run --rm --entrypoint="" docker.io/falcosecurity/falco:$FALCO_VERSION cat /usr/bin/falco-driver-loader | grep DRIVER_VERSION= | cut -f2 -d\"
+$ FALCO_VERSION=0.29.1 bash -c 'docker run --rm --entrypoint="" \
+    docker.io/falcosecurity/falco:$FALCO_VERSION \
+    cat /usr/bin/falco-driver-loader \
+    | grep DRIVER_VERSION= \
+    | cut -f2 -d\"'
 # 17f5df52a7d9ed6bb12d3b1768460def8439936d
 ```
 2. Go to the [Releases](https://github.com/thought-machine/falco-probes/releases) and find the name which matches your Falco Driver Version. You can then download the eBPF probes you want from there.
