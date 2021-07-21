@@ -22,5 +22,13 @@ The process is as follows:
 5. Create a pull request through the UI, please request a review from the Thought Machine Organisation members and apply any relevant labels.
 6. Once discussed and approved, the UI will be used to squash and merge the PR onto master by a Thought Machine Organisation member.
 7. Once merged the remote branch should be deleted.
+
+### Adding new Operating Systems
+
+1. Add a new Golang package for the operating system under `./pkg/operatingsystem`.
+2. Implement the `operatingsystem.OperatingSystem` interface, see `./pkg/operatingsystem/amazonlinux2` for an example.
+3. Add your new operating system to the `OperatingSystems` map in `./pkg/resolver/resolver.go`.
+
+
 ## Future Considerations
 - Should interest in contributing increase, the Thought Machine Organisation members may consider implementing a CLA/DCO as needed.
