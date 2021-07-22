@@ -17,11 +17,12 @@ To obtain an eBPF kernel probe, you can:
 
 1. Determine the Falco Driver version that your version of Falco is using:
 ```bash
-$ FALCO_VERSION=0.29.1 bash -c 'docker run --rm --entrypoint="" \
+FALCO_VERSION=0.29.1
+docker run --rm --entrypoint="" \
     docker.io/falcosecurity/falco:$FALCO_VERSION \
     cat /usr/bin/falco-driver-loader \
     | grep DRIVER_VERSION= \
-    | cut -f2 -d\"'
+    | cut -f2 -d\"
 # 17f5df52a7d9ed6bb12d3b1768460def8439936d
 ```
 2. Go to the [Releases](https://github.com/thought-machine/falco-probes/releases) and find the name which matches your Falco Driver Version. You can then download the eBPF probes you want from there.
