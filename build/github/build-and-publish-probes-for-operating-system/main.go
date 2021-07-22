@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/thought-machine/falco-probes/internal/cmd"
 	"github.com/thought-machine/falco-probes/internal/logging"
@@ -63,34 +62,20 @@ func main() {
 		Int("amount", len(kernelPackageNames)).
 		Msg("Retrieving kernel packages")
 
-	// set up limiter to limit the amount of probes we build at the same time.
-	limiter := make(chan struct{}, opts.Parallelism)
-	// use a waitgroup to wait for goroutines to complete.
-	var wg sync.WaitGroup
-	// errs to collect errors from all the goroutines.
-	errs := make(chan error, len(kernelPackageNames))
-
+	parallelFns := []func() error{}
 	for _, kernelPackageName := range kernelPackageNames {
-		kernelPackageName := kernelPackageName
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			limiter <- struct{}{}
-			defer func() { <-limiter }()
-			if err := buildProbesForKernelPackageName(
+		parallelFns = append(parallelFns, func() error {
+			return buildProbesForKernelPackageName(
 				cli,
 				ghReleases,
 				operatingSystem,
 				kernelPackageName,
 				FalcoVersions,
-			); err != nil {
-				errs <- err
-			}
-		}()
+			)
+		})
 	}
 
-	wg.Wait()
-	close(errs)
+	errs := cmd.RunParallelAndCollectErrors(parallelFns, opts.Parallelism)
 
 	handleErrs(errs)
 }
@@ -143,15 +128,11 @@ func buildProbesForKernelPackageName(
 	return nil
 }
 
-func handleErrs(errs chan error) {
-	hasErrors := false
-	for err := range errs {
-		if err != nil {
-			log.Error().Err(err)
-			hasErrors = true
+func handleErrs(errs []error) {
+	if len(errs) > 0 {
+		for _, err := range errs {
+			log.Error().Err(err).Msg("error encountered")
 		}
-	}
-	if hasErrors {
 		log.Fatal().Msg("errors encountered")
 	}
 }
