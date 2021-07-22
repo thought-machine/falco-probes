@@ -34,7 +34,7 @@ curl -LO "https://github.com/thought-machine/falco-probes/releases/download/${RE
 
 ## Roadmap
 
-* Google Container-Optimized OS (cos)
+* Google Container-Optimized OS (`cos`)
 
 We're not currently planning on supporting other distributions, but we're open to pull requests.
 
