@@ -32,4 +32,15 @@ curl -LO "https://github.com/thought-machine/falco-probes/releases/download/${RE
 
 * Amazon Linux 2 (`amazonlinux2`)
 
+## Roadmap
+
+* Google Container-Optimized OS (`cos`)
+
+We're not currently planning on supporting other distributions, but we're open to pull requests.
+
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for how to add support for additional operating systems.
+
+## Contact
+
+To contact us, open a ticket in [GitHub Issues](https://github.com/thought-machine/falco-probes/issues)
+Project Link: https://github.com/thought-machine/falco-probes
