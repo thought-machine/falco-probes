@@ -20,12 +20,14 @@ go_test(
     name = "falcodriverbuilder_test",
     size = "large",
     srcs = [
+        "build-ebpf-probe_test.go",
         "falcodriverbuilder_test.go",
     ],
     external = True,
     deps = [
         ":falcodriverbuilder",
         "//pkg/docker",
+        "//pkg/operatingsystem/resolver",
         "//third_party/go:stretchr_testify",
     ],
 )

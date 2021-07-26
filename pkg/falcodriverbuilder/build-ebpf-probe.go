@@ -10,7 +10,7 @@ import (
 
 var log = logging.Logger
 
-// BuildEBPFProbe builds a Falco eBPF probe with the given falcoVersion, operatingsystem and kernelPackageName, returning the falcoDriverVersio and outProbePath.
+// BuildEBPFProbe builds a Falco eBPF probe with the given falcoVersion, operatingsystem and kernelPackageName, returning the falcoDriverVersio, and outProbePath.
 func BuildEBPFProbe(
 	cli *docker.Client,
 	falcoVersion string,

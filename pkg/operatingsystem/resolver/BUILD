@@ -4,6 +4,7 @@ go_library(
     visibility = [
         "//build/...",
         "//cmd/...",
+        "//pkg/...",
     ],
     deps = [
         "//pkg/docker",
