@@ -17,8 +17,6 @@ var log = logging.Logger
 
 // FalcoVersions represents the list of Falco versions to build eBPF probes for the given operating system. We're only interested in building the versions
 // that diversify our support for Falco driver versions as they maintain compatibility between different Falco versions.
-// Note: We can only support 0.28.1+ at the moment as it seems like the falco-driver-loader script changed in an incompatible way between 0.26 and 0.28.1.
-// TODO: To fix this, we could just source the driver loader script from 0.28.1 and reuse that instead of the script bundled w/ each falco-driver-loader.
 var FalcoVersions = []string{
 	"0.24.0", // falco-driver-version: 85c88952b018fdbce2464222c3303229f5bfcfad
 	"0.25.0", // falco-driver-version: ae104eb20ff0198a5dcb0c91cc36c86e7c3f25c7
