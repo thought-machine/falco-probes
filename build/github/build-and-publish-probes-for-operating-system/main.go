@@ -20,9 +20,9 @@ var log = logging.Logger
 // Note: We can only support 0.28.1+ at the moment as it seems like the falco-driver-loader script changed in an incompatible way between 0.26 and 0.28.1.
 // TODO: To fix this, we could just source the driver loader script from 0.28.1 and reuse that instead of the script bundled w/ each falco-driver-loader.
 var FalcoVersions = []string{
-	// "0.24.0", // falco-driver-version: 85c88952b018fdbce2464222c3303229f5bfcfad
-	// "0.25.0", // falco-driver-version: ae104eb20ff0198a5dcb0c91cc36c86e7c3f25c7
-	// "0.26.0", // falco-driver-version: 2aa88dcf6243982697811df4c1b484bcbe9488a2
+	"0.24.0", // falco-driver-version: 85c88952b018fdbce2464222c3303229f5bfcfad
+	"0.25.0", // falco-driver-version: ae104eb20ff0198a5dcb0c91cc36c86e7c3f25c7
+	"0.26.0", // falco-driver-version: 2aa88dcf6243982697811df4c1b484bcbe9488a2
 	"0.28.1", // falco-driver-version: 5c0b863ddade7a45568c0ac97d037422c9efb750
 	"0.29.1", // falco-driver-version: 17f5df52a7d9ed6bb12d3b1768460def8439936d
 }
