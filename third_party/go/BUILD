@@ -198,7 +198,7 @@ go_module(
     ],
     licences = ["Apache-2.0"],
     module = "github.com/containerd/containerd",
-    version = "v1.5.2",
+    version = "v1.5.4",
     deps = [
         ":google_grpc",
         ":opencontainers_imagespec",

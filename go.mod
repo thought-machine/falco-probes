@@ -3,7 +3,7 @@ module github.com/thought-machine/falco-probes
 go 1.16
 
 require (
-	github.com/containerd/containerd v1.5.2 // indirect
+	github.com/containerd/containerd v1.5.4 // indirect
 	github.com/docker/docker v20.10.7+incompatible
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/google/go-github/v37 v37.0.0
