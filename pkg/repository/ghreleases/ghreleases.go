@@ -82,9 +82,37 @@ func (ghr *GHReleases) PublishProbe(driverVersion string, probePath string) erro
 }
 
 // IsAlreadyMirrored implmements repository.Repository.IsAlreadyMirrored for GitHub Releases.
-func (ghr *GHReleases) IsAlreadyMirrored(driverVersion string, probeName string) bool {
-	// TODO: unimplimented
-	return false
+func (ghr *GHReleases) IsAlreadyMirrored(driverVersion string, probeName string) (bool, error) {
+	// use a mutex to ensure that this function is only called once at a time as it is not thread safe.
+	// i.e. a release that doesn't exist may result in multiple goroutines trying to create it at once.
+	ghr.releasesMu.Lock()
+	defer ghr.releasesMu.Unlock()
+	ctx := context.Background()
+
+	// Retrieve the releases
+	releases, _, err := ghr.ghClient.Repositories.ListReleases(ctx, ghr.owner, ghr.repo, &github.ListOptions{})
+	if err != nil {
+		return false, fmt.Errorf("could not list releases: %w", err)
+	}
+	for _, release := range releases {
+		// Check if release exists for this driverVersion
+		if *release.Name == driverVersion {
+			log.Info().Str("release", *release.Name).Msg("Matching release found, now checking it's assets: ")
+			// Retrieve the matching releases assets
+			assets, _, err := ghr.ghClient.Repositories.ListReleaseAssets(ctx, ghr.owner, ghr.repo, *release.ID, &github.ListOptions{})
+			if err != nil {
+				return false, fmt.Errorf("could not list release's assets: %w", err)
+			}
+			for _, asset := range assets {
+				// Check if asset matches probeName
+				if *asset.Name == probeName {
+					log.Info().Str("using", *asset.BrowserDownloadURL).Msg("Probe is uploaded and available")
+					return true, nil
+				}
+			}
+		}
+	}
+	return false, fmt.Errorf("release/asset not found that matches %s/%s", driverVersion, probeName)
 }
 
 func newGHClient(token string) *github.Client {

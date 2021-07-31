@@ -4,5 +4,6 @@ go_library(
     visibility = [
         "//build/...",
         "//pkg/repository/...",
+        "//cmd/...",
     ],
 )

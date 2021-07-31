@@ -1,7 +1,10 @@
 go_library(
     name = "ghreleases",
     srcs = ["ghreleases.go"],
-    visibility = ["//build/..."],
+    visibility = [
+        "//build/...",
+        "//cmd/...",
+    ],
     deps = [
         "//internal/logging",
         "//pkg/repository",
