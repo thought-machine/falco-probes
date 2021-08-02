@@ -12,4 +12,7 @@ go_binary(
     ],
 )
 
-# E.g. plz run //cmd/is-falco-ebpf-probe-uploaded -- --verbose --falco_version=0.29.1 --github_releases_token=$GRT amazonlinux2 4.14.200-155.322.amzn2
+# To Use:
+#   Requires Personal access token with no scope selected to be added to .github_token
+#   export GITHUB_TOKEN=$(cat .github_token)
+#   plz run //cmd/is-falco-ebpf-probe-uploaded -- --falco_version <falco_version> <operating_system> <kernel_package_name>

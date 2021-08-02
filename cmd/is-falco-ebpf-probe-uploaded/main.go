@@ -13,8 +13,6 @@ import (
 	"github.com/thought-machine/falco-probes/pkg/repository/ghreleases"
 )
 
-// Takes same inputs as the //cmd/build-falco-ebpf-probe tool.
-// TODO: figue out how to deal with the GHReleases issue & 401 for calling github api
 type opts struct {
 	FalcoVersion string          `long:"falco_version" description:"The version of Falco to compile probes against" required:"true"`
 	GHReleases   ghreleases.Opts `group:"github_releases" namespace:"github_releases"`

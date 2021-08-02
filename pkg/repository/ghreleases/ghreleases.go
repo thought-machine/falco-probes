@@ -112,7 +112,7 @@ func (ghr *GHReleases) IsAlreadyMirrored(driverVersion string, probeName string)
 			}
 		}
 	}
-	return false, fmt.Errorf("release/asset not found that matches %s/%s", driverVersion, probeName)
+	return false, fmt.Errorf("asset not found that matches %s/%s", driverVersion, probeName)
 }
 
 func newGHClient(token string) *github.Client {
