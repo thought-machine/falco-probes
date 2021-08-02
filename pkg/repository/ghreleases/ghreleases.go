@@ -90,7 +90,7 @@ func (ghr *GHReleases) IsAlreadyMirrored(driverVersion string, probeName string)
 	ctx := context.Background()
 
 	// Retrieve the releases
-	releases, _, err := ghr.ghClient.Repositories.ListReleases(ctx, ghr.owner, ghr.repo, &github.ListOptions{})
+	releases, _, err := ghr.ghClient.Repositories.ListReleases(ctx, ghr.owner, ghr.repo, &github.ListOptions{PerPage: 100}) //TODO: if >100 releases we need to figure out pagination
 	if err != nil {
 		return false, fmt.Errorf("could not list releases: %w", err)
 	}
@@ -99,7 +99,7 @@ func (ghr *GHReleases) IsAlreadyMirrored(driverVersion string, probeName string)
 		if *release.Name == driverVersion {
 			log.Info().Str("release", *release.Name).Msg("Matching release found, now checking it's assets: ")
 			// Retrieve the matching releases assets
-			assets, _, err := ghr.ghClient.Repositories.ListReleaseAssets(ctx, ghr.owner, ghr.repo, *release.ID, &github.ListOptions{})
+			assets, _, err := ghr.ghClient.Repositories.ListReleaseAssets(ctx, ghr.owner, ghr.repo, *release.ID, &github.ListOptions{PerPage: 100}) //TODO: if >100 assets we need to figure out pagination
 			if err != nil {
 				return false, fmt.Errorf("could not list release's assets: %w", err)
 			}
