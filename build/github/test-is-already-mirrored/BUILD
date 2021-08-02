@@ -1,5 +1,5 @@
 go_binary(
-    name = "test-is-falco-ebpf-probe-uploaded",
+    name = "test-is-already-mirrored",
     srcs = ["main.go"],
     deps = [
         "//internal/cmd",

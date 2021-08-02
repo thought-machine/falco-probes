@@ -1,4 +1,4 @@
-name: test-is-falco-ebpf-probe-uploaded
+name: test-is-already-mirrored
 on: [push]
 jobs:
   generate-jobs:
@@ -11,7 +11,7 @@ jobs:
     outputs:
       operating-systems: ${{ steps.set-operating-systems.outputs.operating-systems }}
 
-test-is-falco-ebpf-probe-uploaded:
+  test-is-already-mirrored:
     permissions: read-all # there's no available permission configuration for releases (https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions).
     needs: generate-jobs
     runs-on: ubuntu-latest
@@ -20,6 +20,6 @@ test-is-falco-ebpf-probe-uploaded:
         operating-system: ${{ fromJson(needs.generate-jobs.outputs.operating-systems) }}
     steps:
       - uses: actions/checkout@v2
-      - run: ./pleasew -p -v2 run //build/github/test-is-falco-ebpf-probe-uploaded -- ${{ matrix.operating-system }}
+      - run: ./pleasew -p -v2 run //build/github/test-is-already-mirrored -- ${{ matrix.operating-system }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
