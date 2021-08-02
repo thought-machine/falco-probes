@@ -1,8 +1,5 @@
 name: test-is-falco-ebpf-probe-uploaded
-on: 
-  push:
-    branches:
-      - master
+on: [push]
 jobs:
   generate-jobs:
     runs-on: ubuntu-latest
