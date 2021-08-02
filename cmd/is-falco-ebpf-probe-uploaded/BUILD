@@ -6,9 +6,9 @@ go_binary(
         "//internal/logging",
         "//pkg/docker",
         "//pkg/falcodriverbuilder",
+        "//pkg/operatingsystem/resolver",
         "//pkg/repository",
         "//pkg/repository/ghreleases",
-        "//pkg/operatingsystem/resolver",
     ],
 )
 
