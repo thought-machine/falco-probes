@@ -1,0 +1,28 @@
+name: test-is-falco-ebpf-probe-uploaded
+on: 
+  push:
+    branches:
+      - master
+jobs:
+  generate-jobs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - run: "./pleasew -p -v2 run //build/github/generate-operating-systems -- --out_file plz-out/github/operating-systems.json"
+    - id: set-operating-systems
+      run: echo "::set-output name=operating-systems::$(<plz-out/github/operating-systems.json)"
+    outputs:
+      operating-systems: ${{ steps.set-operating-systems.outputs.operating-systems }}
+
+test-is-falco-ebpf-probe-uploaded:
+    permissions: read-all # there's no available permission configuration for releases (https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions).
+    needs: generate-jobs
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        operating-system: ${{ fromJson(needs.generate-jobs.outputs.operating-systems) }}
+    steps:
+      - uses: actions/checkout@v2
+      - run: ./pleasew -p -v2 run //build/github/test-is-falco-ebpf-probe-uploaded -- ${{ matrix.operating-system }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
