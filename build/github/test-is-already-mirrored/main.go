@@ -35,7 +35,7 @@ func main() {
 	testsForMirroring = append(testsForMirroring, testCase{"2aa88dcf6243982697811df4c1b484bcbe9488a2", "falco_amazonlinux2_4.14.238-182.422.notAprobeName.o", false})
 	testsForMirroring = append(testsForMirroring, testCase{"ae104eb20ff0198a5dcb0c91cc36c86e7c3f25c7", "falco_amazonlinux2_4.14.238-182.422.amzn2.x86_64_1.o", true})
 	testsForMirroring = append(testsForMirroring, testCase{"ae104eb20ff0198a5dcb0c91cc36c86e7c3f25c7", "falco_notAprobeName_4.14.238-182.422.amzn2.x86_64_1.o", false})
-	testsForMirroring = append(testsForMirroring, testCase{"17f5df52a7d9ed6bb12d3b1768460def8439936d", "falco_amazonlinux2_4.14.101-91.76.amzn2.x86_64_1.o", true})
+	testsForMirroring = append(testsForMirroring, testCase{"17f5df52a7d9ed6bb12d3b1768460def8439936d", "falco_amazonlinux2_4.14.94-89.73.amzn2.x86_64_1.o", true})
 	testsForMirroring = append(testsForMirroring, testCase{"17f5df52a7d9ed6bb12d3b1768460def8439936d", "falco_amazonlinux2_notAprobeName.amzn2.x86_64_1.o", false})
 	testsForMirroring = append(testsForMirroring, testCase{"5c0b863ddade7a45568c0ac97d037422c9efb750", "falco_amazonlinux2_4.14.77-81.59.amzn2.x86_64_1.o", true})
 	testsForMirroring = append(testsForMirroring, testCase{"5c0b863ddade7a45568c0ac97d037422c9efb750", "falco_amazonlinux2_4.14.77-81.59.notAprobeName.o", false})
