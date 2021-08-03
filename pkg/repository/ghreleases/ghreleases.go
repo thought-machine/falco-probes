@@ -86,46 +86,56 @@ func (ghr *GHReleases) IsAlreadyMirrored(driverVersion string, probeName string)
 	ctx := context.Background()
 
 	// Retrieve the releases
+	release, err := ghr.getReleaseByName(driverVersion)
+	if err != nil {
+		return false, fmt.Errorf("could not get release: %w", err)
+	}
+
+	// Retrieve the matching releases assets
+	currentAssetPage := 0
+	lastAssetPage := 0
+	for currentAssetPage <= lastAssetPage {
+		assets, assetResponse, err := ghr.ghClient.Repositories.ListReleaseAssets(ctx, ghr.owner, ghr.repo, *release.ID, &github.ListOptions{Page: currentAssetPage, PerPage: 100})
+		if err != nil {
+			return false, fmt.Errorf("could not list release's assets: %w", err)
+		}
+
+		for _, asset := range assets {
+			// Check if asset matches probeName
+			if *asset.Name == probeName {
+				log.Info().Str("using", *asset.BrowserDownloadURL).Msg("Probe is uploaded and available")
+				return true, nil
+			}
+		}
+
+		lastAssetPage = assetResponse.LastPage
+		currentAssetPage++
+	}
+	return false, fmt.Errorf("asset not found that matches %s/%s", driverVersion, probeName)
+}
+
+// getReleaseByName uses the github API to identify the name of the release for the given driverVersion
+func (ghr *GHReleases) getReleaseByName(driverVersion string) (*github.RepositoryRelease, error) {
+	ctx := context.Background()
+	// Retrieve the releases
 	currentReleasePage := 0
 	lastReleasePage := 0
 	for currentReleasePage <= lastReleasePage {
 		releases, releaseResponse, err := ghr.ghClient.Repositories.ListReleases(ctx, ghr.owner, ghr.repo, &github.ListOptions{Page: currentReleasePage, PerPage: 100})
 		if err != nil {
-			return false, fmt.Errorf("could not list releases: %w", err)
+			return nil, fmt.Errorf("could not list releases: %w", err)
 		}
 
 		for _, release := range releases {
 			// Check if release exists for this driverVersion
 			if *release.Name == driverVersion {
-				log.Info().Str("release", *release.Name).Msg("Matching release found, now checking it's assets: ")
-				// Retrieve the matching releases assets
-				currentAssetPage := 0
-				lastAssetPage := 0
-				for currentAssetPage <= lastAssetPage {
-					assets, assetResponse, err := ghr.ghClient.Repositories.ListReleaseAssets(ctx, ghr.owner, ghr.repo, *release.ID, &github.ListOptions{Page: currentAssetPage, PerPage: 100})
-					if err != nil {
-						return false, fmt.Errorf("could not list release's assets: %w", err)
-					}
-
-					for _, asset := range assets {
-						// Check if asset matches probeName
-						if *asset.Name == probeName {
-							log.Info().Str("using", *asset.BrowserDownloadURL).Msg("Probe is uploaded and available")
-							return true, nil
-						}
-					}
-
-					lastAssetPage = assetResponse.LastPage
-					currentAssetPage++
-				}
+				return release, nil
 			}
 		}
-
 		lastReleasePage = releaseResponse.LastPage
 		currentReleasePage++
 	}
-
-	return false, fmt.Errorf("asset not found that matches %s/%s", driverVersion, probeName)
+	return nil, fmt.Errorf("could not find matching release for: %s", driverVersion)
 }
 
 func newGHClient(token string) *github.Client {
