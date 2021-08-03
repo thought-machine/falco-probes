@@ -38,6 +38,7 @@ func main() {
 	testsForMirroring = append(testsForMirroring, testCase{"17f5df52a7d9ed6bb12d3b1768460def8439936d", "falco_amazonlinux2_4.14.94-89.73.amzn2.x86_64_1.o", true})
 	testsForMirroring = append(testsForMirroring, testCase{"17f5df52a7d9ed6bb12d3b1768460def8439936d", "falco_amazonlinux2_notAprobeName.amzn2.x86_64_1.o", false})
 	testsForMirroring = append(testsForMirroring, testCase{"5c0b863ddade7a45568c0ac97d037422c9efb750", "falco_amazonlinux2_4.14.77-81.59.amzn2.x86_64_1.o", true})
+	testsForMirroring = append(testsForMirroring, testCase{"5c0b863ddade7a45568c0ac97d037422c9efb750", "falco_amazonlinux2_4.14.133-113.105.amzn2.x86_64_1.o", true})
 	testsForMirroring = append(testsForMirroring, testCase{"5c0b863ddade7a45568c0ac97d037422c9efb750", "falco_amazonlinux2_4.14.77-81.59.notAprobeName.o", false})
 	testsForMirroring = append(testsForMirroring, testCase{"notAdriverVersion", "falco_amazonlinux2_4.14.77-81.59.amzn2.x86_64_1.o", false})
 
