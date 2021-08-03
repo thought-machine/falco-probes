@@ -1,0 +1,75 @@
+
+"""
+"""
+
+list_kernel_packages_binary = "//cmd/list-kernel-packages:list-kernel-packages"
+get_kernel_package_binary = "//cmd/get-kernel-package:get-kernel-package"
+
+def operating_system(
+    name: str,
+):
+    sh_cmd(
+        name = f"{name}_get_kernel_package",
+        deps = [get_kernel_package_binary],
+        cmd = f"$(exe {get_kernel_package_binary}) {name} \\\$@",
+        visibility = ["PUBLIC"],
+    )
+    genrule(
+        name = f"{name}_kernel_packages",
+        tools = [list_kernel_packages_binary],
+        outs = [f"{name}_kernel_packages"],
+        cmd = f"""
+        $TOOLS --out_file $OUTS {name}
+        sed -i 's/$/\",/g' $OUTS
+        sed -i 's/^/\"/g' $OUTS
+        sed -i '1 i\{name}_kernel_packages = [' $OUTS
+        sed -i -e '$a]' $OUTS
+        """,
+        sandbox = False,
+        visibility = ["PUBLIC"],
+    )
+    pass
+
+def kernel_package(
+    operating_system_rule: str,
+    kernel_package_name: str,
+):
+    """
+    the output directory should have 
+    - kernel_release
+    - kernel_version
+    - kernel_machine
+    - os_release
+    - kernel_configuration
+    - kernel_sources
+    """
+    return genrule(
+        name = kernel_package_name,
+        tools = [f"{operating_system_rule}_get_kernel_package"],
+        deps = [get_kernel_package_binary],
+        cmd = f"$TOOLS --output_dir $OUTS {kernel_package_name} ",
+        sandbox = False,
+        outs = [kernel_package_name],
+    )
+
+
+def falco_drivers(
+    name: str,
+    falco_version: str,
+    kernel_package: dict,
+):
+    genrule(
+        name=f"{name}_falco_ebpf_driver",
+        srcs = {
+            "kernel_release": [kernel_package['kernel_release']],
+            "kernel_version": [kernel_package['kernel_version']],
+            "kernel_machine": [kernel_package['kernel_machine']],
+            "os_release": [kernel_package['os_release']],
+        },
+        outs = [f"{name}_falco_ebpf_driver"],
+        cmd = """
+uname_r=$(<$SRCS_KERNEL_RELEASE)
+uname_v=$(<$SRCS_KERNEL_VERSION)
+uname_m=$(<$SRCS_KERNEL_MACHINE)
+        """,
+    )

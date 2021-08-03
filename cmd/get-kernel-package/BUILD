@@ -1,5 +1,5 @@
 go_binary(
-    name = "list-kernel-packages",
+    name = "get-kernel-package",
     srcs = ["main.go"],
     deps = [
         "//internal/cmd",

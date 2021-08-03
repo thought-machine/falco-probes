@@ -2,6 +2,8 @@ package docker_test
 
 import (
 	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -45,4 +47,41 @@ func TestGetFileFromVolume(t *testing.T) {
 	fileBytes, err := ioutil.ReadAll(fileReader)
 	require.NoError(t, err)
 	assert.Equal(t, []byte("bar\nbaz"), fileBytes)
+}
+
+func TestGetDirectoryFromVolume(t *testing.T) {
+	cli := docker.MustClient()
+
+	vol := cli.MustCreateVolume()
+
+	err := cli.WriteFileToVolume(vol, "/tmp/", "/tmp/a", "bar\nbaz")
+	require.NoError(t, err)
+	err = cli.WriteFileToVolume(vol, "/tmp/", "/tmp/b", "far\nfaz")
+	require.NoError(t, err)
+
+	tmpDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	err = cli.GetDirectoryFromVolume(vol, "/tmp/", "/tmp/", tmpDir)
+	assert.NoError(t, err)
+
+	files := []string{}
+	err = filepath.Walk(tmpDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		files = append(files, path)
+		return nil
+	})
+	require.NoError(t, err)
+
+	expectedFiles := []string{
+		tmpDir,
+		filepath.Join(tmpDir, "tmp"),
+		filepath.Join(tmpDir, "tmp/a"),
+		filepath.Join(tmpDir, "tmp/b"),
+	}
+
+	assert.Equal(t, expectedFiles, files)
 }

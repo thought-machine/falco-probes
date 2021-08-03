@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 
 	"github.com/docker/docker/api/types"
@@ -151,4 +152,72 @@ func (c *Client) GetFileFromVolume(volume operatingsystem.Volume, volumeMnt stri
 	}
 
 	return outBytes, nil
+}
+
+// GetDirectoryFromVolume copies the files from the given volume and path to the given outPath.
+func (c *Client) GetDirectoryFromVolume(volume operatingsystem.Volume, volumeMnt string, path string, outPath string) error {
+	ctx := context.Background()
+
+	if err := c.EnsureImage(BusyBoxImage); err != nil {
+		return err
+	}
+
+	volumes := map[operatingsystem.Volume]string{
+		volume: volumeMnt,
+	}
+
+	resp, err := c.upstream.ContainerCreate(ctx, &container.Config{
+		Image:   BusyBoxImage,
+		Volumes: getContainerConfigVolumesFromOpts(volumes),
+		Tty:     false,
+	}, getHostConfigFromOpts(volumes), nil, nil, "")
+	if err != nil {
+		return err
+	}
+
+	reader, _, err := c.upstream.CopyFromContainer(ctx, resp.ID, path)
+	if err != nil {
+		return err
+	}
+
+	if err := os.MkdirAll(outPath, 0755); err != nil {
+		return err
+	}
+	tr := tar.NewReader(reader)
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			break // End of archive
+		}
+		if err != nil {
+			return err
+		}
+		fullOutPath := filepath.Join(outPath, hdr.Name)
+
+		switch hdr.Typeflag {
+		case tar.TypeDir:
+			if _, err := os.Stat(fullOutPath); err != nil {
+				if err := os.MkdirAll(fullOutPath, 0755); err != nil {
+					return err
+				}
+			}
+		case tar.TypeReg:
+			f, err := os.OpenFile(fullOutPath, os.O_CREATE|os.O_RDWR, os.FileMode(hdr.Mode))
+			if err != nil {
+				return err
+			}
+
+			if _, err := io.Copy(f, tr); err != nil {
+				return err
+			}
+
+			f.Close()
+		}
+	}
+
+	if err := c.upstream.ContainerRemove(ctx, resp.ID, types.ContainerRemoveOptions{}); err != nil {
+		return fmt.Errorf("could not remove container: %w", err)
+	}
+
+	return nil
 }

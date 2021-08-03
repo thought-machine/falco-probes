@@ -26,6 +26,7 @@ go_test(
     srcs = [
         "docker_test.go",
         "logs_test.go",
+        "volume_test.go",
     ],
     external = True,
     deps = [
