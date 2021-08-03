@@ -101,11 +101,10 @@ func (ghr *GHReleases) IsAlreadyMirrored(driverVersion string, probeName string)
 
 // getAssetFromReleaseByName uses the github API to identify whether the desired probe is an asset of the given release
 func (ghr *GHReleases) getAssetFromReleaseByName(release *github.RepositoryRelease, probeName string, ctx context.Context) (*github.ReleaseAsset, error) {
-	// Retrieve the matching releases assets
-	currentAssetPage := 0
-	lastAssetPage := 0
-	for currentAssetPage <= lastAssetPage {
-		assets, assetResponse, err := ghr.ghClient.Repositories.ListReleaseAssets(ctx, ghr.owner, ghr.repo, *release.ID, &github.ListOptions{Page: currentAssetPage, PerPage: 100})
+	// Retrieve the release's assets
+	opt := &github.ListOptions{PerPage: 20}
+	for {
+		assets, assetResponse, err := ghr.ghClient.Repositories.ListReleaseAssets(ctx, ghr.owner, ghr.repo, *release.ID, opt)
 		if err != nil {
 			return nil, fmt.Errorf("could not list release's assets: %w", err)
 		}
@@ -115,8 +114,10 @@ func (ghr *GHReleases) getAssetFromReleaseByName(release *github.RepositoryRelea
 				return asset, nil
 			}
 		}
-		lastAssetPage = assetResponse.LastPage
-		currentAssetPage++
+		if assetResponse.NextPage == 0 {
+			break
+		}
+		opt.Page = assetResponse.NextPage
 	}
 	return nil, fmt.Errorf("could not find matching asset for: %s", probeName)
 }
@@ -124,10 +125,9 @@ func (ghr *GHReleases) getAssetFromReleaseByName(release *github.RepositoryRelea
 // getReleaseByName uses the github API to identify the name of the release for the given driverVersion
 func (ghr *GHReleases) getReleaseByName(driverVersion string, ctx context.Context) (*github.RepositoryRelease, error) {
 	// Retrieve the releases
-	currentReleasePage := 0
-	lastReleasePage := 0
-	for currentReleasePage <= lastReleasePage {
-		releases, releaseResponse, err := ghr.ghClient.Repositories.ListReleases(ctx, ghr.owner, ghr.repo, &github.ListOptions{Page: currentReleasePage, PerPage: 100})
+	opt := &github.ListOptions{PerPage: 1}
+	for {
+		releases, releaseResponse, err := ghr.ghClient.Repositories.ListReleases(ctx, ghr.owner, ghr.repo, opt)
 		if err != nil {
 			return nil, fmt.Errorf("could not list releases: %w", err)
 		}
@@ -137,8 +137,10 @@ func (ghr *GHReleases) getReleaseByName(driverVersion string, ctx context.Contex
 				return release, nil
 			}
 		}
-		lastReleasePage = releaseResponse.LastPage
-		currentReleasePage++
+		if releaseResponse.NextPage == 0 {
+			break
+		}
+		opt.Page = releaseResponse.NextPage
 	}
 	return nil, fmt.Errorf("could not find matching release for: %s", driverVersion)
 }
