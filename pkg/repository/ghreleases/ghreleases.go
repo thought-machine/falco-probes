@@ -86,37 +86,43 @@ func (ghr *GHReleases) IsAlreadyMirrored(driverVersion string, probeName string)
 	ctx := context.Background()
 
 	// Retrieve the releases
-	release, err := ghr.getReleaseByName(driverVersion)
+	release, err := ghr.getReleaseByName(driverVersion, ctx)
 	if err != nil {
 		return false, fmt.Errorf("could not get release: %w", err)
 	}
+	asset, err := ghr.getAssetFromReleaseByName(release, probeName, ctx)
+	if err != nil {
+		return false, fmt.Errorf("could not get asset: %w", err)
+	}
 
+	log.Info().Str("using", *asset.BrowserDownloadURL).Msg("Probe is uploaded and available")
+	return true, nil
+}
+
+// getAssetFromReleaseByName uses the github API to identify whether the desired probe is an asset of the given release
+func (ghr *GHReleases) getAssetFromReleaseByName(release *github.RepositoryRelease, probeName string, ctx context.Context) (*github.ReleaseAsset, error) {
 	// Retrieve the matching releases assets
 	currentAssetPage := 0
 	lastAssetPage := 0
 	for currentAssetPage <= lastAssetPage {
 		assets, assetResponse, err := ghr.ghClient.Repositories.ListReleaseAssets(ctx, ghr.owner, ghr.repo, *release.ID, &github.ListOptions{Page: currentAssetPage, PerPage: 100})
 		if err != nil {
-			return false, fmt.Errorf("could not list release's assets: %w", err)
+			return nil, fmt.Errorf("could not list release's assets: %w", err)
 		}
-
 		for _, asset := range assets {
 			// Check if asset matches probeName
 			if *asset.Name == probeName {
-				log.Info().Str("using", *asset.BrowserDownloadURL).Msg("Probe is uploaded and available")
-				return true, nil
+				return asset, nil
 			}
 		}
-
 		lastAssetPage = assetResponse.LastPage
 		currentAssetPage++
 	}
-	return false, fmt.Errorf("asset not found that matches %s/%s", driverVersion, probeName)
+	return nil, fmt.Errorf("could not find matching asset for: %s", probeName)
 }
 
 // getReleaseByName uses the github API to identify the name of the release for the given driverVersion
-func (ghr *GHReleases) getReleaseByName(driverVersion string) (*github.RepositoryRelease, error) {
-	ctx := context.Background()
+func (ghr *GHReleases) getReleaseByName(driverVersion string, ctx context.Context) (*github.RepositoryRelease, error) {
 	// Retrieve the releases
 	currentReleasePage := 0
 	lastReleasePage := 0
@@ -125,7 +131,6 @@ func (ghr *GHReleases) getReleaseByName(driverVersion string) (*github.Repositor
 		if err != nil {
 			return nil, fmt.Errorf("could not list releases: %w", err)
 		}
-
 		for _, release := range releases {
 			// Check if release exists for this driverVersion
 			if *release.Name == driverVersion {
