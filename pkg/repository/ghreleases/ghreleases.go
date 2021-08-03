@@ -86,11 +86,11 @@ func (ghr *GHReleases) IsAlreadyMirrored(driverVersion string, probeName string)
 	ctx := context.Background()
 
 	// Retrieve the releases
-	release, err := ghr.getReleaseByName(driverVersion, ctx)
+	release, err := ghr.getReleaseByName(ctx, driverVersion)
 	if err != nil {
 		return false, fmt.Errorf("could not get release: %w", err)
 	}
-	asset, err := ghr.getAssetFromReleaseByName(release, probeName, ctx)
+	asset, err := ghr.getAssetFromReleaseByName(ctx, release, probeName)
 	if err != nil {
 		return false, fmt.Errorf("could not get asset: %w", err)
 	}
@@ -100,7 +100,7 @@ func (ghr *GHReleases) IsAlreadyMirrored(driverVersion string, probeName string)
 }
 
 // getAssetFromReleaseByName uses the github API to identify whether the desired probe is an asset of the given release
-func (ghr *GHReleases) getAssetFromReleaseByName(release *github.RepositoryRelease, probeName string, ctx context.Context) (*github.ReleaseAsset, error) {
+func (ghr *GHReleases) getAssetFromReleaseByName(ctx context.Context, release *github.RepositoryRelease, probeName string) (*github.ReleaseAsset, error) {
 	// Retrieve the release's assets
 	opt := &github.ListOptions{PerPage: 20}
 	for {
@@ -123,7 +123,7 @@ func (ghr *GHReleases) getAssetFromReleaseByName(release *github.RepositoryRelea
 }
 
 // getReleaseByName uses the github API to identify the name of the release for the given driverVersion
-func (ghr *GHReleases) getReleaseByName(driverVersion string, ctx context.Context) (*github.RepositoryRelease, error) {
+func (ghr *GHReleases) getReleaseByName(ctx context.Context, driverVersion string) (*github.RepositoryRelease, error) {
 	// Retrieve the releases
 	opt := &github.ListOptions{PerPage: 1}
 	for {
