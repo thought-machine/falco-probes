@@ -90,28 +90,45 @@ func (ghr *GHReleases) IsAlreadyMirrored(driverVersion string, probeName string)
 	ctx := context.Background()
 
 	// Retrieve the releases
-	releases, _, err := ghr.ghClient.Repositories.ListReleases(ctx, ghr.owner, ghr.repo, &github.ListOptions{PerPage: 100}) //TODO: if >100 releases we need to figure out pagination
-	if err != nil {
-		return false, fmt.Errorf("could not list releases: %w", err)
-	}
-	for _, release := range releases {
-		// Check if release exists for this driverVersion
-		if *release.Name == driverVersion {
-			log.Info().Str("release", *release.Name).Msg("Matching release found, now checking it's assets: ")
-			// Retrieve the matching releases assets
-			assets, _, err := ghr.ghClient.Repositories.ListReleaseAssets(ctx, ghr.owner, ghr.repo, *release.ID, &github.ListOptions{PerPage: 100}) //TODO: if >100 assets we need to figure out pagination
-			if err != nil {
-				return false, fmt.Errorf("could not list release's assets: %w", err)
-			}
-			for _, asset := range assets {
-				// Check if asset matches probeName
-				if *asset.Name == probeName {
-					log.Info().Str("using", *asset.BrowserDownloadURL).Msg("Probe is uploaded and available")
-					return true, nil
+	currentReleasePage := 0
+	lastReleasePage := 0
+	for currentReleasePage <= lastReleasePage {
+		releases, releaseResponse, err := ghr.ghClient.Repositories.ListReleases(ctx, ghr.owner, ghr.repo, &github.ListOptions{Page: currentReleasePage, PerPage: 100})
+		if err != nil {
+			return false, fmt.Errorf("could not list releases: %w", err)
+		}
+
+		for _, release := range releases {
+			// Check if release exists for this driverVersion
+			if *release.Name == driverVersion {
+				log.Info().Str("release", *release.Name).Msg("Matching release found, now checking it's assets: ")
+				// Retrieve the matching releases assets
+				currentAssetPage := 0
+				lastAssetPage := 0
+				for currentAssetPage <= lastAssetPage {
+					assets, assetResponse, err := ghr.ghClient.Repositories.ListReleaseAssets(ctx, ghr.owner, ghr.repo, *release.ID, &github.ListOptions{Page: currentAssetPage, PerPage: 100})
+					if err != nil {
+						return false, fmt.Errorf("could not list release's assets: %w", err)
+					}
+
+					for _, asset := range assets {
+						// Check if asset matches probeName
+						if *asset.Name == probeName {
+							log.Info().Str("using", *asset.BrowserDownloadURL).Msg("Probe is uploaded and available")
+							return true, nil
+						}
+					}
+
+					lastAssetPage = assetResponse.LastPage
+					currentAssetPage++
 				}
 			}
 		}
+
+		lastReleasePage = releaseResponse.LastPage
+		currentReleasePage++
 	}
+
 	return false, fmt.Errorf("asset not found that matches %s/%s", driverVersion, probeName)
 }
 

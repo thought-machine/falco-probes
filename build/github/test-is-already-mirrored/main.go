@@ -55,12 +55,12 @@ func main() {
 			log.Info().
 				Bool("result", result).
 				Bool("expectedResult", test.expectedResult).
-				Msg("Test Passed:")
+				Msg("PASSED:")
 		} else {
 			log.Warn().
 				Bool("result", result).
 				Bool("expectedResult", test.expectedResult).
-				Msg("Test Failed:")
+				Msg("FAILED:")
 		}
 	}
 
