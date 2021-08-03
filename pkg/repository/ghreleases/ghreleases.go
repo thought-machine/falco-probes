@@ -83,10 +83,6 @@ func (ghr *GHReleases) PublishProbe(driverVersion string, probePath string) erro
 
 // IsAlreadyMirrored implmements repository.Repository.IsAlreadyMirrored for GitHub Releases.
 func (ghr *GHReleases) IsAlreadyMirrored(driverVersion string, probeName string) (bool, error) {
-	// use a mutex to ensure that this function is only called once at a time as it is not thread safe.
-	// i.e. a release that doesn't exist may result in multiple goroutines trying to create it at once.
-	ghr.releasesMu.Lock()
-	defer ghr.releasesMu.Unlock()
 	ctx := context.Background()
 
 	// Retrieve the releases
