@@ -3,6 +3,7 @@ package operatingsystem
 import (
 	"fmt"
 	"regexp"
+	"strings"
 )
 
 // KernelPackage represents the required inputs for build a Falco Driver for a Kernel Package.
@@ -50,3 +51,11 @@ type FileContents string
 
 // Volume represents a reference to a Volume (structured collection of files).
 type Volume string
+
+// Validate checks that the probeName contains the given operatingSystem
+func (kp *KernelPackage) Validate() error {
+	if !strings.Contains(kp.ProbeName(), kp.OperatingSystem) {
+		return fmt.Errorf("kernel probe name '%s' does not include operating system '%s'", kp.ProbeName(), kp.OperatingSystem)
+	}
+	return nil
+}

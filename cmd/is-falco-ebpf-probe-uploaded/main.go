@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"strings"
 
 	"github.com/thought-machine/falco-probes/internal/cmd"
 	"github.com/thought-machine/falco-probes/internal/logging"
@@ -53,10 +52,12 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not get kernel package")
 	}
-	probeName := kernelPackage.ProbeName() + ".o"
-	if strings.Contains(probeName, operatingSystem.GetName()) == false {
-		log.Fatal().Msg("Inputted probe doesn't match inputted operating system.")
+
+	if err := kernelPackage.Validate(); err != nil {
+		log.Fatal().Err(err).Msg("kernel package validation failed")
 	}
+
+	probeName := kernelPackage.ProbeName() + ".o"
 
 	// Indentify if probe uploaded
 	log.Info().
