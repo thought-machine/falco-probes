@@ -3,6 +3,7 @@ go_library(
     srcs = ["repository.go"],
     visibility = [
         "//build/...",
+        "//cmd/...",
         "//pkg/repository/...",
     ],
 )
