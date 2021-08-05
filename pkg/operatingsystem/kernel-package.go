@@ -46,6 +46,23 @@ func (kp *KernelPackage) ProbeName() string {
 	return fmt.Sprintf("%s_%s_%s_%s", driverName, targetID, kernelRelease, kernelVersion)
 }
 
+// KernelPackageFromProbeName extracts the kernel package from a full probe name
+func KernelPackageFromProbeName(probe string) string {
+	kernelPkg := strings.TrimSuffix(probe, ".o") // Remove the file extension ...
+	probeSplit := strings.Split(probe, "_")
+	kernelPkg = probeSplit[len(probeSplit)-1]
+	if len(probeSplit) > 3 && probeSplit[2] != "" {
+		kernelPkg = probeSplit[2] // ... remove the 'falco_$os_' prefix and any underscores in the arch suffix
+	}
+
+	lastFullStop := strings.LastIndex(kernelPkg, ".")
+	if lastFullStop > -1 && len(kernelPkg)-1 > lastFullStop {
+		kernelPkg = kernelPkg[:lastFullStop] // ... remove the arch suffix
+	}
+
+	return kernelPkg
+}
+
 // FileContents represents the contents of a file.
 type FileContents string
 

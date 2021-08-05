@@ -37,3 +37,26 @@ func TestKernelPackageProbeName(t *testing.T) {
 		})
 	}
 }
+
+func TestKernelPackageFromProbeName(t *testing.T) {
+	var tests = []struct {
+		probeName        string
+		expKernelPackage string
+	}{
+		{
+			probeName:        "falco_amazonlinux2_4.14.101-91.76.amzn2.x86_64_1.o",
+			expKernelPackage: "4.14.101-91.76.amzn2",
+		},
+		{
+			probeName:        "falco_lotsofversioning_1.2.3.4.5.6.7.8.9-10.11.amzn2.x86_64_1.o",
+			expKernelPackage: "1.2.3.4.5.6.7.8.9-10.11.amzn2",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.expKernelPackage, func(t *testing.T) {
+			result := operatingsystem.KernelPackageFromProbeName(tt.probeName)
+			assert.Equal(t, tt.expKernelPackage, result)
+		})
+	}
+}

@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
-	"github.com/google/go-github/v37/github"
 	"github.com/thought-machine/falco-probes/internal/logging"
 	"github.com/thought-machine/falco-probes/pkg/repository"
+
+	"github.com/google/go-github/v37/github"
 	"golang.org/x/oauth2"
 )
 
@@ -42,7 +44,7 @@ func MustGHReleases(opts *Opts) *GHReleases {
 	}
 }
 
-// PublishProbe implmements repository.Repository.PublishProbe for GitHub Releases.
+// PublishProbe implements repository.Repository.PublishProbe for GitHub Releases.
 func (ghr *GHReleases) PublishProbe(driverVersion string, probePath string) error {
 	probeFileName := filepath.Base(probePath)
 	release, err := ghr.ensureReleaseForDriverVersion(driverVersion)
@@ -81,7 +83,33 @@ func (ghr *GHReleases) PublishProbe(driverVersion string, probePath string) erro
 	return nil
 }
 
-// IsAlreadyMirrored implmements repository.Repository.IsAlreadyMirrored for GitHub Releases.
+// GetReleasedProbes retrieves all the compiled probes from all published releases as Github assets.
+func (ghr *GHReleases) GetReleasedProbes() ([]*github.ReleaseAsset, error) {
+	ctx := context.Background()
+	releases, _, err := ghr.ghClient.Repositories.ListReleases(ctx, ghr.owner, ghr.repo, nil)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get release history from Github. %w", err)
+	}
+
+	allProbes := make([]*github.ReleaseAsset, 0)
+	for _, release := range releases {
+		assets, _, err := ghr.ghClient.Repositories.ListReleaseAssets(ctx, ghr.owner, ghr.repo, release.GetID(), nil)
+		if err != nil {
+			return nil, fmt.Errorf("unable to get assets from release %s. %w", release.GetName(), err)
+		}
+
+		for _, asset := range assets {
+			if !strings.HasSuffix(asset.GetName(), ".o") {
+				continue // ignore source code assets
+			}
+			allProbes = append(allProbes, asset)
+		}
+	}
+
+	return allProbes, nil
+}
+
+// IsAlreadyMirrored implements repository.Repository.IsAlreadyMirrored for GitHub Releases.
 func (ghr *GHReleases) IsAlreadyMirrored(driverVersion string, probeName string) (bool, error) {
 	ctx := context.Background()
 
