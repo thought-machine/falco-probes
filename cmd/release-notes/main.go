@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"sort"
@@ -11,6 +12,8 @@ import (
 	"github.com/thought-machine/falco-probes/pkg/operatingsystem"
 	"github.com/thought-machine/falco-probes/pkg/releasenotes"
 	"github.com/thought-machine/falco-probes/pkg/repository/ghreleases"
+
+	"github.com/google/go-github/v37/github"
 )
 
 func main() {
@@ -25,21 +28,19 @@ func main() {
 
 	probes := make(releasenotes.ReleasedProbes, len(released))
 	for i, r := range released {
-		url := strings.TrimPrefix(r.GetBrowserDownloadURL(), "https://")
-		urlSplit := strings.Split(url, "/")
-		if len(urlSplit) < 6 || urlSplit[5] == "" {
-			log.Fatalf("could not determine driver version from released asset %s", url)
+		shortDriverVersion, err := getShortDriverVersionFromAsset(r)
+		if err != nil {
+			log.Fatal(err)
 		}
 
 		probes[i] = releasenotes.ReleasedProbe{
-			DriverVersion: urlSplit[5],
+			DriverVersion: shortDriverVersion,
 			Probe:         r.GetName(),
 			KernelPackage: operatingsystem.KernelPackageFromProbeName(r.GetName()),
 		}
 	}
 
-	// Ensure we're grouping probes by driver version and then ordering by name
-	sort.Sort(probes)
+	sort.Sort(sort.Reverse(probes)) // most recently released drivers/kernel packages first
 
 	tmpl, err := template.New("releasenotes").Parse(releaseNotesTemplate)
 	if err != nil {
@@ -60,4 +61,16 @@ func main() {
 	if err := tmpl.Execute(w, &params); err != nil {
 		log.Fatalf("unable to write probes to RELEASE_NOTES.md. %v", err)
 	}
+}
+
+// getShortDriverVersionFromAsset uses the download url to extract the (shortened) driver version
+func getShortDriverVersionFromAsset(a *github.ReleaseAsset) (string, error) {
+	url := strings.TrimPrefix(a.GetBrowserDownloadURL(), "https://")
+	urlSplit := strings.Split(url, "/")
+	if len(urlSplit) < 6 || urlSplit[5] == "" {
+		return "", fmt.Errorf("could not determine driver version from released asset at %s", url)
+	}
+	shortDriverVersion := urlSplit[5] // github.com/$org/$repo/releases/download/$releasename/$assetname
+
+	return shortDriverVersion, nil
 }

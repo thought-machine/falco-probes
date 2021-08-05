@@ -9,5 +9,6 @@ go_binary(
         "//pkg/operatingsystem",
         "//pkg/releasenotes",
         "//pkg/repository/ghreleases",
+        "//third_party/go:google_github",
     ],
 )
