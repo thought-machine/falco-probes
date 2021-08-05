@@ -94,8 +94,8 @@ func (ghr *GHReleases) IsAlreadyMirrored(driverVersion string, probeName string)
 	if err != nil {
 		return false, fmt.Errorf("could not get asset: %w", err)
 	}
-
-	log.Info().Str("using", *asset.BrowserDownloadURL).Msg("Probe is uploaded and available")
+	// log.Info().Str("using", *asset.BrowserDownloadURL).Msg("Probe is uploaded and available")
+	log.Info().Msgf("Found probe, access with: curl -LO \"%s\"", *asset.BrowserDownloadURL)
 	return true, nil
 }
 
