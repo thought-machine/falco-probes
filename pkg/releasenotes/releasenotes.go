@@ -16,7 +16,7 @@ func (rp *ReleasedProbe) ToMarkdownRow() string {
 	return "|" + rp.DriverVersion + "|" + rp.KernelPackage + "|" + rp.Probe + "|"
 }
 
-// ReleasedProbes is a sortable slice of probes, ordered by most recent driver, then most recent kernel package
+// ReleasedProbes is a sortable slice of probes, sorting by driver ver/kernel pkg ('newest' release last)
 type ReleasedProbes []ReleasedProbe
 
 var _ sort.Interface = (ReleasedProbes)(nil)
@@ -24,14 +24,11 @@ var _ sort.Interface = (ReleasedProbes)(nil)
 func (rp ReleasedProbes) Len() int      { return len(rp) }
 func (rp ReleasedProbes) Swap(i, j int) { rp[i], rp[j] = rp[j], rp[i] }
 func (rp ReleasedProbes) Less(i, j int) bool {
-	// If the Falco versions are the same, sort based on the most recent kernel package...
 	if rp[i].DriverVersion == rp[j].DriverVersion {
-		return rp[i].KernelPackage > rp[j].KernelPackage
+		return rp[i].KernelPackage < rp[j].KernelPackage
 	}
 
-	// Otherwise, we sort by the most recent driver version
-	// We assume unmatched versions are newer that those listed (so default to 999).
-	fi, fj := 999, 999
+	fi, fj := 999, 999 // assume unmatched versions are newer than those listed (so default to 999).
 	for ii, o := range orderedDriverVersions {
 		if o == rp[i].DriverVersion {
 			fi = ii
@@ -44,13 +41,11 @@ func (rp ReleasedProbes) Less(i, j int) bool {
 	return fi < fj
 }
 
-// This list of driver versions is sorted by the _newest first_.
-// Prepend new drivers versions to the top of this list.
-// We use the short versions because that is how we name our releases
+// orderedDriverVersions lists the released Falco driver versions by release
 var orderedDriverVersions = []string{
-	"17f5df52",
-	"5c0b863d",
-	"2aa88dcf",
-	"ae104eb2",
-	"85c88952",
+	"85c88952", // ~0.24
+	"ae104eb2", // ~0.25
+	"2aa88dcf", // ~0.26
+	"5c0b863d", // ~0.28
+	"17f5df52", // ~0.29
 }
