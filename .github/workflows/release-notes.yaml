@@ -1,5 +1,5 @@
 name: release-notes
-on: [push]
+on: [workflow_dispatch]
 jobs:
   release-notes:
     runs-on: ubuntu-latest
