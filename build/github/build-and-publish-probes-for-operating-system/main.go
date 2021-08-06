@@ -27,7 +27,7 @@ var FalcoVersionNames = []string{
 	"0.29.1", // falco-driver-version: 17f5df52a7d9ed6bb12d3b1768460def8439936d
 }
 
-type FalcoVersion struct {
+type falcoVersion struct {
 	Name   string
 	Driver string
 }
@@ -99,7 +99,7 @@ func process1KernelPackage(
 	repo repository.Repository,
 	operatingSystem operatingsystem.OperatingSystem,
 	kernelPackageName string,
-	falcoVersions []FalcoVersion,
+	falcoVersions []falcoVersion,
 ) error {
 	// Get the required package specific values
 	log.Info().
@@ -165,8 +165,8 @@ func process1KernelPackage(
 	return nil
 }
 
-func getFalcoDrivers(dockerCli *docker.Client, FalcoVersionNames []string) ([]FalcoVersion, error) {
-	var FalcoVersions []FalcoVersion
+func getFalcoDrivers(dockerCli *docker.Client, FalcoVersionNames []string) ([]falcoVersion, error) {
+	var FalcoVersions []falcoVersion
 
 	for _, falcoVersionName := range FalcoVersionNames {
 		log.Info().
@@ -184,7 +184,7 @@ func getFalcoDrivers(dockerCli *docker.Client, FalcoVersionNames []string) ([]Fa
 			Str("name", falcoVersionName).
 			Str("driver", driver).
 			Msg("Got driver")
-		FalcoVersions = append(FalcoVersions, FalcoVersion{falcoVersionName, driver})
+		FalcoVersions = append(FalcoVersions, falcoVersion{falcoVersionName, driver})
 	}
 
 	return FalcoVersions, nil
