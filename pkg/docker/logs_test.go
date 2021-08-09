@@ -12,7 +12,7 @@ func TestDockerRunLogs(t *testing.T) {
 	cli := docker.MustClient()
 
 	out, err := cli.Run(&docker.RunOpts{
-		Image: "docker.io/library/alpine:3.14",
+		Image: "docker.io/library/alpine:3.14@sha256:1775bebec23e1f3ce486989bfc9ff3c4e951690df84aa9f926497d82f2ffca9d",
 		Cmd:   []string{"cat", "/etc/os-release"},
 	})
 

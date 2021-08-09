@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sync"
 
 	"github.com/google/go-github/v37/github"
 	"github.com/thought-machine/falco-probes/internal/logging"
@@ -24,21 +23,13 @@ type Opts struct {
 type GHReleases struct {
 	repository.Repository
 
-	ghClient *github.Client
-	owner    string
-	repo     string
-
-	releasesMu sync.Mutex
+	ghClient *CachingGHReleasesClient
 }
 
 // MustGHReleases returns a new GitHub Releases repository, fatally erroring if an error is encountered.
 func MustGHReleases(opts *Opts) *GHReleases {
-	ghClient := newGHClient(opts.Token)
-
 	return &GHReleases{
-		ghClient: ghClient,
-		owner:    "thought-machine",
-		repo:     "falco-probes",
+		ghClient: NewCachingGHReleasesClient(opts.Token),
 	}
 }
 
@@ -56,8 +47,7 @@ func (ghr *GHReleases) PublishProbe(driverVersion string, probePath string) erro
 	}
 	defer probeFile.Close()
 
-	ctx := context.Background()
-	asset, _, err := ghr.ghClient.Repositories.UploadReleaseAsset(ctx, ghr.owner, ghr.repo, release.GetID(), &github.UploadOptions{
+	asset, err := ghr.ghClient.UploadReleaseAsset(release.GetID(), &github.UploadOptions{
 		Name: probeFileName,
 	}, probeFile)
 	if err != nil {
@@ -83,14 +73,12 @@ func (ghr *GHReleases) PublishProbe(driverVersion string, probePath string) erro
 
 // IsAlreadyMirrored implmements repository.Repository.IsAlreadyMirrored for GitHub Releases.
 func (ghr *GHReleases) IsAlreadyMirrored(driverVersion string, probeName string) (bool, error) {
-	ctx := context.Background()
-
 	// Retrieve the releases
-	release, err := ghr.getReleaseByName(ctx, driverVersion)
+	release, err := ghr.getReleaseByName(driverVersion)
 	if err != nil {
 		return false, fmt.Errorf("could not get release: %w", err)
 	}
-	asset, err := ghr.getAssetFromReleaseByName(ctx, release, probeName)
+	asset, err := ghr.getAssetFromReleaseByName(release, probeName)
 	if err != nil {
 		return false, fmt.Errorf("could not get asset: %w", err)
 	}
@@ -100,48 +88,36 @@ func (ghr *GHReleases) IsAlreadyMirrored(driverVersion string, probeName string)
 }
 
 // getAssetFromReleaseByName uses the github API to identify whether the desired probe is an asset of the given release
-func (ghr *GHReleases) getAssetFromReleaseByName(ctx context.Context, release *github.RepositoryRelease, probeName string) (*github.ReleaseAsset, error) {
-	// Retrieve the release's assets
-	opt := &github.ListOptions{PerPage: 100}
-	for {
-		assets, assetResponse, err := ghr.ghClient.Repositories.ListReleaseAssets(ctx, ghr.owner, ghr.repo, *release.ID, opt)
-		if err != nil {
-			return nil, fmt.Errorf("could not list release's assets: %w", err)
-		}
-		for _, asset := range assets {
-			// Check if asset matches probeName
-			if *asset.Name == probeName {
-				return asset, nil
-			}
-		}
-		if assetResponse.NextPage == 0 {
-			break
-		}
-		opt.Page = assetResponse.NextPage
+func (ghr *GHReleases) getAssetFromReleaseByName(release *github.RepositoryRelease, probeName string) (*github.ReleaseAsset, error) {
+
+	assets, err := ghr.ghClient.ListReleaseAssets(release.GetID())
+	if err != nil {
+		return nil, fmt.Errorf("could not list release's assets: %w", err)
 	}
+
+	for _, asset := range assets {
+		if asset.GetName() == probeName {
+			return asset, nil
+		}
+	}
+
 	return nil, fmt.Errorf("could not find matching asset for: %s", probeName)
 }
 
 // getReleaseByName uses the github API to identify the name of the release for the given driverVersion
-func (ghr *GHReleases) getReleaseByName(ctx context.Context, driverVersion string) (*github.RepositoryRelease, error) {
-	// Retrieve the releases
-	opt := &github.ListOptions{PerPage: 100}
-	for {
-		releases, releaseResponse, err := ghr.ghClient.Repositories.ListReleases(ctx, ghr.owner, ghr.repo, opt)
-		if err != nil {
-			return nil, fmt.Errorf("could not list releases: %w", err)
-		}
-		for _, release := range releases {
-			// Check if release exists for this driverVersion
-			if *release.Name == driverVersion {
-				return release, nil
-			}
-		}
-		if releaseResponse.NextPage == 0 {
-			break
-		}
-		opt.Page = releaseResponse.NextPage
+func (ghr *GHReleases) getReleaseByName(driverVersion string) (*github.RepositoryRelease, error) {
+
+	releases, err := ghr.ghClient.ListReleases()
+	if err != nil {
+		return nil, fmt.Errorf("could not list releases: %w", err)
 	}
+
+	for _, release := range releases {
+		if release.GetName() == driverVersion {
+			return release, nil
+		}
+	}
+
 	return nil, fmt.Errorf("could not find matching release for: %s", driverVersion)
 }
 
@@ -156,28 +132,17 @@ func newGHClient(token string) *github.Client {
 }
 
 func (ghr *GHReleases) ensureReleaseForDriverVersion(driverVersion string) (*github.RepositoryRelease, error) {
-	// use a mutex to ensure that this function is only called once at a time as it is not thread safe.
-	// i.e. a release that doesn't exist may result in multiple goroutines trying to create it at once.
-	ghr.releasesMu.Lock()
-	defer ghr.releasesMu.Unlock()
 
-	ctx := context.Background()
-	releases, _, err := ghr.ghClient.Repositories.ListReleases(ctx, ghr.owner, ghr.repo, &github.ListOptions{})
-	if err != nil {
-		return nil, fmt.Errorf("could not list releases: %w", err)
-	}
-	for _, release := range releases {
-		if *release.Name == driverVersion {
-			return release, nil
-		}
+	if release, err := ghr.getReleaseByName(driverVersion); err != nil {
+		return release, nil
 	}
 
 	// release does not exist, create it
 	// truncate the driverVersion for the release tag as "branch or tag names consisting of 40 hex characters are not allowed."
 	tagName := driverVersion[:8]
-	release, _, err := ghr.ghClient.Repositories.CreateRelease(ctx, ghr.owner, ghr.repo, &github.RepositoryRelease{
-		Name:    &driverVersion,
-		TagName: &tagName,
+	release, err := ghr.ghClient.CreateRelease(&github.RepositoryRelease{
+		Name:    github.String(driverVersion),
+		TagName: github.String(tagName),
 	})
 
 	return release, err
