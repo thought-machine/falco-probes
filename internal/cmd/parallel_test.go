@@ -61,3 +61,40 @@ func TestRunParallelAndCollectErrors(t *testing.T) {
 		})
 	}
 }
+
+func TestRunParallelAndCollectErrorsLoops(t *testing.T) {
+
+	amountOfNumbers := 10
+	parallelism := 4
+
+	inFns := []func() error{}
+	outChan := make(chan int, amountOfNumbers)
+
+	// create functions which output a number to the channel
+	for number := 0; number < amountOfNumbers; number++ {
+		// https://github.com/golang/go/wiki/CommonMistakes#using-goroutines-on-loop-iterator-variables
+		number := number
+
+		inFns = append(inFns, func() error {
+			outChan <- number
+			return nil
+		})
+	}
+
+	resErrs := cmd.RunParallelAndCollectErrors(inFns, parallelism)
+	for _, err := range resErrs {
+		assert.NoError(t, err)
+	}
+	close(outChan)
+
+	// verify that the channel has the same numbers that we expected to output in
+	outNumbers := []int{}
+	for i := range outChan {
+		outNumbers = append(outNumbers, i)
+	}
+
+	for i := 0; i < amountOfNumbers; i++ {
+		assert.Contains(t, outNumbers, i)
+	}
+
+}
