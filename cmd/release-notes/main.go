@@ -29,14 +29,12 @@ func main() {
 		}
 	}
 
-	params := releaseNoteParams{ProbeRows: make([]string, len(probes))}
+	params := releasedProbesParams{ProbeRows: make([]string, len(probes))}
 	for i, p := range probes {
 		params.ProbeRows[i] = p.ToMarkdownRow()
 	}
-
 	tmpl, err := template.New("releasenotes").Parse(releaseNotesTemplate)
 	if err != nil {
 		log.Fatalf("unable to parse release notes template. %v", err)
 	}
-
 }

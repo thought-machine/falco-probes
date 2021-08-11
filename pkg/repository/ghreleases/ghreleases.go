@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+<<<<<<< HEAD
+=======
+	"sync"
+>>>>>>> 352e953 (Prefer actual release notes)
 
 	"github.com/thought-machine/falco-probes/internal/logging"
 	"github.com/thought-machine/falco-probes/pkg/repository"

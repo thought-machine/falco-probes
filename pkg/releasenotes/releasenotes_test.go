@@ -13,6 +13,7 @@ func TestToMarkdownString(t *testing.T) {
 	assert.Equal(t, rp.ToMarkdownRow(), "|kp|probe|")
 }
 
+<<<<<<< HEAD
 func TestKernelPackageFromProbeName(t *testing.T) {
 	var tests = []struct {
 		probeName        string
@@ -38,4 +39,15 @@ func TestKernelPackageFromProbeName(t *testing.T) {
 			assert.Equal(t, tt.expKernelPackage, result)
 		})
 	}
+=======
+func TestReleasedProbeFromMarkdownRow(t *testing.T) {
+	rp := releasenotes.ReleasedProbe{Probe: "a", KernelPackage: "hi"}
+	mdr := rp.ToMarkdownRow()
+	assert.Equal(t, rp, releasenotes.ReleasedProbeFromMarkdownRow(mdr))
+
+	emptyReleaseProbe := releasenotes.ReleasedProbe{}
+	assert.Equal(t, emptyReleaseProbe, releasenotes.ReleasedProbeFromMarkdownRow("just a random string"))
+	assert.Equal(t, emptyReleaseProbe, releasenotes.ReleasedProbeFromMarkdownRow("|nope|"))
+	assert.Equal(t, emptyReleaseProbe, releasenotes.ReleasedProbeFromMarkdownRow("|too|many|rows|in|this|table|"))
+>>>>>>> 352e953 (Prefer actual release notes)
 }

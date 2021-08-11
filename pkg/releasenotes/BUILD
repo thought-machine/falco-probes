@@ -1,9 +1,7 @@
 go_library(
     name = "releasenotes",
     srcs = ["releasenotes.go"],
-    visibility = [
-        "//cmd/...",
-    ],
+    visibility = ["//cmd/..."],
 )
 
 go_test(
@@ -15,3 +13,4 @@ go_test(
         "//third_party/go:stretchr_testify",
     ],
 )
+

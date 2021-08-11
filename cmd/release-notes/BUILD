@@ -6,7 +6,6 @@ go_binary(
     ],
     deps = [
         "//internal/cmd",
-        "//pkg/operatingsystem",
         "//pkg/releasenotes",
         "//pkg/repository/ghreleases",
         "//third_party/go:google_github",

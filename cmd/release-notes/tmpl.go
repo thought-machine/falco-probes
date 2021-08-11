@@ -1,10 +1,10 @@
 package main
 
-type releaseNoteParams struct {
+type releasedProbesParams struct {
 	ProbeRows []string
 }
 
-var releaseNotesTemplate = `
+var releasedProbesTemplate = `
 # Released Probes
 | Kernel Package | Probe |
 |----------------|-------|
