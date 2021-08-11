@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - master
+  schedule:
+    - cron:  '0 0 * * *' # Runs at 00:00 UTC every day.
 jobs:
   generate-jobs:
     runs-on: ubuntu-latest
