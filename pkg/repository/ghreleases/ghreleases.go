@@ -36,7 +36,7 @@ func MustGHReleases(opts *Opts) *GHReleases {
 // PublishProbe implmements repository.Repository.PublishProbe for GitHub Releases.
 func (ghr *GHReleases) PublishProbe(driverVersion string, probePath string) error {
 	probeFileName := filepath.Base(probePath)
-	release, err := ghr.ensureReleaseForDriverVersion(driverVersion)
+	release, err := ghr.EnsureReleaseForDriverVersion(driverVersion)
 	if err != nil {
 		return err
 	}
@@ -131,9 +131,9 @@ func newGHClient(token string) *github.Client {
 	return github.NewClient(tc)
 }
 
-func (ghr *GHReleases) ensureReleaseForDriverVersion(driverVersion string) (*github.RepositoryRelease, error) {
-
-	if release, err := ghr.getReleaseByName(driverVersion); err != nil {
+// EnsureReleaseForDriverVersion creates a release for the given driver version if one does not already exist.
+func (ghr *GHReleases) EnsureReleaseForDriverVersion(driverVersion string) (*github.RepositoryRelease, error) {
+	if release, err := ghr.getReleaseByName(driverVersion); err == nil {
 		return release, nil
 	}
 

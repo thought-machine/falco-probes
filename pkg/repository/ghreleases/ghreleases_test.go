@@ -3,9 +3,11 @@ package ghreleases_test
 import (
 	"context"
 	"os"
+	"sync"
 	"testing"
 
 	"github.com/google/go-github/v37/github"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/thought-machine/falco-probes/pkg/repository/ghreleases"
 	"golang.org/x/oauth2"
@@ -43,4 +45,51 @@ func cleanupTestReleases(t *testing.T) {
 			require.NoError(t, err)
 		}
 	}
+}
+
+func TestEnsureReleaseForDriverVersion(t *testing.T) {
+	ghReleasesClient := ghreleases.MustGHReleases(&ghreleases.Opts{
+		Token: getGitHubAuthToken(t),
+	})
+
+	// Run 10 workers in parallel
+	parallelism := 10
+	driverVersion := "85c88952b018fdbce2464222c3303229f5bfcfad"
+
+	releaseCh := make(chan *github.RepositoryRelease, parallelism)
+	errCh := make(chan error, parallelism)
+
+	var wg sync.WaitGroup
+	startCh := make(chan struct{})
+	for i := 0; i < parallelism; i++ {
+		wg.Add(1)
+		go func() {
+			// wait for start trigger (`close(startCh)`)
+			<-startCh
+			defer wg.Done()
+			release, err := ghReleasesClient.EnsureReleaseForDriverVersion(driverVersion)
+			releaseCh <- release
+			errCh <- err
+		}()
+	}
+	// trigger the workers
+	close(startCh)
+	wg.Wait()
+	close(releaseCh)
+	close(errCh)
+
+	releases := []*github.RepositoryRelease{}
+	for release := range releaseCh {
+		releases = append(releases, release)
+	}
+
+	for _, release := range releases {
+		assert.Equal(t, releases[0], release)
+	}
+
+	for err := range errCh {
+		assert.NoError(t, err)
+	}
+
+	cleanupTestReleases(t)
 }
