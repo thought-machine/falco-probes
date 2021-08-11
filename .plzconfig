@@ -12,6 +12,12 @@ version = 16.1.1
 importpath = github.com/thought-machine/falco-probes
 gotool = //third_party/lang:go_tool|go
 
+[build]
+; needed for unit tests that interact with GitHub APIs.
+; `pass_env` isn't available via `go_test` rules, so we're passing it
+; to every rule via buildconfig as a workaround.
+passenv = GITHUB_TOKEN
+
 [alias "lint"]
 cmd = run sequential --include lint //scripts/lint/...
 
