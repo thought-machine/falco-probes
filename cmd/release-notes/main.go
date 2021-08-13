@@ -1,13 +1,18 @@
 package main
 
 import (
-	"log"
-	"text/template"
+	"context"
+	"time"
 
 	"github.com/thought-machine/falco-probes/internal/cmd"
+	"github.com/thought-machine/falco-probes/internal/logging"
 	"github.com/thought-machine/falco-probes/pkg/releasenotes"
 	"github.com/thought-machine/falco-probes/pkg/repository/ghreleases"
 )
+
+var _ releasenotes.ReleaseEditor = (*ghreleases.GHReleases)(nil)
+
+var log = logging.Logger
 
 func main() {
 	opts := &ghreleases.Opts{}
@@ -16,25 +21,14 @@ func main() {
 
 	releases, err := ghReleases.GetReleases()
 	if err != nil {
-		log.Fatalf("unable to get list of previously releases. %v", err)
+		log.Fatal().Err(err).Msg("unable to get list of previously releases")
 	}
 
-	probes := make(releasenotes.ReleasedProbes, 0)
-	for _, r := range releases {
-		for _, a := range r.Assets {
-			probes = append(probes, releasenotes.ReleasedProbe{
-				Probe:         a.GetName(),
-				KernelPackage: releasenotes.KernelPackageFromProbeName(a.GetName()),
-			})
-		}
-	}
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, time.Minute*3)
+	defer cancel()
 
-	params := releasedProbesParams{ProbeRows: make([]string, len(probes))}
-	for i, p := range probes {
-		params.ProbeRows[i] = p.ToMarkdownRow()
-	}
-	tmpl, err := template.New("releasenotes").Parse(releaseNotesTemplate)
-	if err != nil {
-		log.Fatalf("unable to parse release notes template. %v", err)
+	if err := releasenotes.EditReleaseNotes(ctx, releases, ghReleases); err != nil {
+		log.Fatal().Err(err).Msg("could not update release notes")
 	}
 }

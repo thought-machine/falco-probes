@@ -1,12 +1,19 @@
 go_library(
     name = "releasenotes",
-    srcs = ["releasenotes.go"],
+    srcs = [
+        "releasenotes.go",
+        "releasedprobe.go",
+        "tmpl.go",
+    ],
     visibility = ["//cmd/..."],
 )
 
 go_test(
     name = "releasenotes_test",
-    srcs = ["releasenotes_test.go"],
+    srcs = [
+        "releasenotes_test.go",
+        "releasedprobe_test.go",
+    ],
     external = True,
     deps = [
         ":releasenotes",

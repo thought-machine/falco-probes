@@ -5,10 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-<<<<<<< HEAD
-=======
-	"sync"
->>>>>>> 352e953 (Prefer actual release notes)
 
 	"github.com/thought-machine/falco-probes/internal/logging"
 	"github.com/thought-machine/falco-probes/pkg/repository"
@@ -100,6 +96,15 @@ func (ghr *GHReleases) GetReleases() ([]*github.RepositoryRelease, error) {
 	}
 
 	return releases, nil
+}
+
+// GetReleases uses the github API to list all previous releases
+func (ghr *GHReleases) EditReleaseNotesByReleaseID(ctx context.Context, releaseID int64, body string) error {
+	if err := ghr.ghClient.EditReleaseNotesByReleaseID(ctx, releaseID, body); err != nil {
+		return fmt.Errorf("could not edit release notes: %w", err)
+	}
+
+	return nil
 }
 
 // getAssetFromReleaseByName uses the github API to identify whether the desired probe is an asset of the given release

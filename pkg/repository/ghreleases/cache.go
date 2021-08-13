@@ -12,7 +12,7 @@ import (
 
 const (
 	// GitHubOrganization is the GitHub Organization to use.
-	GitHubOrganization = "thought-machine"
+	GitHubOrganization = "sHesl"
 	// GitHubRepository is the GitHub Repository within the Organization to use.
 	GitHubRepository = "falco-probes"
 )
@@ -159,6 +159,20 @@ func (c *CachingGHReleasesClient) GetReleaseByID(releaseID int64) (*github.Repos
 	}
 
 	return nil, ErrReleaseNotFound
+}
+
+func (c *CachingGHReleasesClient) EditReleaseNotesByReleaseID(ctx context.Context, releaseID int64, body string) error {
+	r := &github.RepositoryRelease{Body: &body}
+	updated, _, err := c.ghClient().Repositories.EditRelease(ctx, c.owner, c.repo, releaseID, r)
+	if err != nil {
+		return err
+	}
+
+	c.dataMu.Lock()
+	c.releasesByID[releaseID] = updated
+	c.dataMu.Unlock()
+
+	return nil
 }
 
 // populateUpstreamReleases populates the cache with releases from upstream.
