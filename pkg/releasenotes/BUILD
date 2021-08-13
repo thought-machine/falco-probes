@@ -21,5 +21,6 @@ go_test(
     deps = [
         ":releasenotes",
         "//third_party/go:stretchr_testify",
+        "//third_party/go:google_github",
     ],
 )
