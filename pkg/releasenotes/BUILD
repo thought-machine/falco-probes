@@ -5,6 +5,9 @@ go_library(
         "releasedprobe.go",
         "tmpl.go",
     ],
+    deps = [
+        "//third_party/go:google_github",
+    ],
     visibility = ["//cmd/..."],
 )
 
@@ -20,4 +23,3 @@ go_test(
         "//third_party/go:stretchr_testify",
     ],
 )
-

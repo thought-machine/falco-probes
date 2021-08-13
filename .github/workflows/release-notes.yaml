@@ -5,6 +5,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: ./pleasew build -p -v2 //cmd/release-notes
-      - run: | 
-         
+      - run: ./pleasew run -p -v2 //cmd/release-notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
