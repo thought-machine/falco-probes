@@ -15,8 +15,8 @@ type ReleaseEditor interface {
 	EditReleaseNotesByReleaseID(ctx context.Context, releaseID int64, body string) error
 }
 
-// EditReleaseNotes updates the provided releases, using custom templating logic, via the github API
-func EditReleaseNotes(ctx context.Context, releases []*github.RepositoryRelease, re ReleaseEditor) error {
+// SetReleaseNotes updates the provided releases, using custom templating logic, via the github API
+func SetReleaseNotes(ctx context.Context, releases []*github.RepositoryRelease, re ReleaseEditor) error {
 	for _, r := range releases {
 		probes := make(ReleasedProbes, len(r.Assets))
 		for i, a := range r.Assets {

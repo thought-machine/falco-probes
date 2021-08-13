@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestEditReleaseNotes(t *testing.T) {
+func TestSetReleaseNotes(t *testing.T) {
 	releases := createStubReleases(
 		[]string{
 			"falco_amazonlinux2_4.14.238-182.422.amzn2.x86_64_1.o",
@@ -27,7 +27,7 @@ func TestEditReleaseNotes(t *testing.T) {
 	)
 
 	sre := stubReleaseEditor{releases: releases}
-	err := releasenotes.EditReleaseNotes(context.Background(), releases, &sre)
+	err := releasenotes.SetReleaseNotes(context.Background(), releases, &sre)
 	assert.NoError(t, err)
 
 	sre.AssertReleaseBody(t, 0, `

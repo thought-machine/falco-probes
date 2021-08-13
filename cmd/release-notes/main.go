@@ -28,7 +28,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(ctx, time.Minute*3)
 	defer cancel()
 
-	if err := releasenotes.EditReleaseNotes(ctx, releases, ghReleases); err != nil {
+	if err := releasenotes.SetReleaseNotes(ctx, releases, ghReleases); err != nil {
 		log.Fatal().Err(err).Msg("could not update release notes")
 	}
 }

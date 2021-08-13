@@ -12,7 +12,7 @@ import (
 
 const (
 	// GitHubOrganization is the GitHub Organization to use.
-	GitHubOrganization = "sHesl"
+	GitHubOrganization = "thought-machine"
 	// GitHubRepository is the GitHub Repository within the Organization to use.
 	GitHubRepository = "falco-probes"
 )
