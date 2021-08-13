@@ -98,7 +98,7 @@ func (ghr *GHReleases) GetReleases() ([]*github.RepositoryRelease, error) {
 	return releases, nil
 }
 
-// GetReleases uses the github API to list all previous releases
+// EditReleaseNotesByReleaseID uses the github API to edit the text content of an existing github release
 func (ghr *GHReleases) EditReleaseNotesByReleaseID(ctx context.Context, releaseID int64, body string) error {
 	if err := ghr.ghClient.EditReleaseNotesByReleaseID(ctx, releaseID, body); err != nil {
 		return fmt.Errorf("could not edit release notes: %w", err)

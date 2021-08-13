@@ -17,7 +17,7 @@ func (rp *ReleasedProbe) ToMarkdownRow() string {
 	return "|" + rp.KernelPackage + "|" + rp.Probe + "|"
 }
 
-// FromMarkdownRow converts a row from a markdown table into a ReleasedProbe
+// ReleasedProbeFromMarkdownRow converts a row from a markdown table into a ReleasedProbe
 func ReleasedProbeFromMarkdownRow(s string) ReleasedProbe {
 	if len(s) < 3 || s[0] != '|' || s[len(s)-1] != '|' {
 		return ReleasedProbe{}

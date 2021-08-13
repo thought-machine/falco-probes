@@ -161,15 +161,15 @@ func (c *CachingGHReleasesClient) GetReleaseByID(releaseID int64) (*github.Repos
 	return nil, ErrReleaseNotFound
 }
 
+// EditReleaseNotesByReleaseID edits the body/text content of a github release
 func (c *CachingGHReleasesClient) EditReleaseNotesByReleaseID(ctx context.Context, releaseID int64, body string) error {
 	r := &github.RepositoryRelease{Body: &body}
-	updated, _, err := c.ghClient().Repositories.EditRelease(ctx, c.owner, c.repo, releaseID, r)
-	if err != nil {
+	if _, _, err := c.ghClient().Repositories.EditRelease(ctx, c.owner, c.repo, releaseID, r); err != nil {
 		return err
 	}
 
 	c.dataMu.Lock()
-	c.releasesByID[releaseID] = updated
+	c.releasesByID[releaseID].Body = &body
 	c.dataMu.Unlock()
 
 	return nil
