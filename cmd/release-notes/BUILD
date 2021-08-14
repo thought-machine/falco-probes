@@ -5,6 +5,7 @@ go_binary(
     ],
     deps = [
         "//internal/cmd",
+        "//internal/logging",
         "//pkg/releasenotes",
         "//pkg/repository/ghreleases",
     ],
