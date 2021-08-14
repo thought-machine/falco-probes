@@ -63,6 +63,10 @@ func (rp ReleasedProbes) Less(i, j int) bool {
 	jSplit := strings.FieldsFunc(rp[j].KernelPackage, splitKernelProbeElements)
 
 	for ii := range iSplit {
+		if len(jSplit)-1 < ii {
+			return false
+		}
+
 		if iSplit[ii] == jSplit[ii] {
 			continue
 		}

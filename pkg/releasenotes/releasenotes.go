@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 	"text/template"
 
 	"github.com/google/go-github/v37/github"
@@ -20,6 +21,10 @@ func SetReleaseNotes(ctx context.Context, releases []*github.RepositoryRelease, 
 	for _, r := range releases {
 		probes := make(ReleasedProbes, len(r.Assets))
 		for i, a := range r.Assets {
+			if !strings.HasSuffix(a.GetName(), ".o") {
+				continue
+			}
+
 			probes[i] = ReleasedProbe{
 				Probe:         a.GetName(),
 				KernelPackage: KernelPackageFromProbeName(a.GetName()),

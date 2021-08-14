@@ -54,18 +54,52 @@ func TestKernelPackageFromProbeName(t *testing.T) {
 }
 
 func TestSortReleasedProbes(t *testing.T) {
-	rps := releasenotes.ReleasedProbes{
-		{KernelPackage: "1.bb", Probe: "2"},
-		{KernelPackage: "1.baa.ab", Probe: "4"},
-		{KernelPackage: "2.aa", Probe: "0"},
-		{KernelPackage: "1.baa.ba", Probe: "3"},
-		{KernelPackage: "1.cb", Probe: "1"},
-		{KernelPackage: "1.ba.ba", Probe: "5"},
+	type testCase struct {
+		desc  string
+		input releasenotes.ReleasedProbes
 	}
 
-	sort.Sort(sort.Reverse(&rps))
+	testCases := []testCase{
+		{
+			"standard sort",
+			releasenotes.ReleasedProbes{
+				{KernelPackage: "1.bb", Probe: "2"},
+				{KernelPackage: "1.baa.ab", Probe: "4"},
+				{KernelPackage: "2.aa", Probe: "0"},
+				{KernelPackage: "1.ba.ba", Probe: "6"},
+				{KernelPackage: "1.baa.ba", Probe: "3"},
+				{KernelPackage: "1.cb", Probe: "1"},
+				{KernelPackage: "1.ba.ba.a", Probe: "5"},
+			},
+		},
+		{
+			"already sorted",
+			releasenotes.ReleasedProbes{
+				{KernelPackage: "2.aa", Probe: "0"},
+				{KernelPackage: "1.cb", Probe: "1"},
+				{KernelPackage: "1.bb", Probe: "2"},
+				{KernelPackage: "1.baa.ba", Probe: "3"},
+				{KernelPackage: "1.baa.ab", Probe: "4"},
+				{KernelPackage: "1.ba.ba.a", Probe: "5"},
+				{KernelPackage: "1.ba.ba", Probe: "6"},
+			},
+		},
+		{
+			"less doesn't panic if comparison is against two elements with different lengths",
+			releasenotes.ReleasedProbes{
+				{KernelPackage: "1.bb.ab", Probe: "0"},
+				{KernelPackage: "1.bb", Probe: "1"},
+			},
+		},
+	}
 
-	for i := 0; i < len(rps); i++ {
-		assert.Equal(t, rps[i].Probe, strconv.Itoa(i))
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			sort.Sort(sort.Reverse(&tc.input))
+
+			for i := 0; i < len(tc.input); i++ {
+				assert.Equal(t, tc.input[i].Probe, strconv.Itoa(i))
+			}
+		})
 	}
 }
