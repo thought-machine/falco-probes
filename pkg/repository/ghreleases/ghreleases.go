@@ -87,6 +87,16 @@ func (ghr *GHReleases) IsAlreadyMirrored(driverVersion string, probeName string)
 	return true, nil
 }
 
+// GetReleases uses the github API to list all previous releases
+func (ghr *GHReleases) GetReleases() ([]*github.RepositoryRelease, error) {
+	releases, err := ghr.ghClient.ListReleases()
+	if err != nil {
+		return nil, fmt.Errorf("could not list releases: %w", err)
+	}
+
+	return releases, nil
+}
+
 // getAssetFromReleaseByName uses the github API to identify whether the desired probe is an asset of the given release
 func (ghr *GHReleases) getAssetFromReleaseByName(release *github.RepositoryRelease, probeName string) (*github.ReleaseAsset, error) {
 

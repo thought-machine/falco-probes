@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/thought-machine/falco-probes/internal/cmd"
 	"github.com/thought-machine/falco-probes/internal/logging"
@@ -11,6 +12,8 @@ import (
 	"github.com/thought-machine/falco-probes/pkg/operatingsystem/resolver"
 	"github.com/thought-machine/falco-probes/pkg/repository"
 	"github.com/thought-machine/falco-probes/pkg/repository/ghreleases"
+
+	"github.com/google/go-github/v37/github"
 )
 
 var log = logging.Logger
@@ -70,6 +73,14 @@ func main() {
 		log.Fatal().Err(err).Msg("could not get kernel package names")
 	}
 
+	log.Info().Msg("Getting list of github releases")
+	releases, err := ghReleases.GetReleases()
+	if err != nil {
+		log.Info().
+			Msg("unable to list previous github releases. " +
+				"continuing, but unable to short-circuit rebuilding probes that have already been released")
+	}
+
 	log.Info().
 		Int("amount", len(kernelPackageNames)).
 		Msg("Retrieving kernel packages")
@@ -78,6 +89,15 @@ func main() {
 	for _, kernelPackageName := range kernelPackageNames {
 		// https://github.com/golang/go/wiki/CommonMistakes#using-goroutines-on-loop-iterator-variables
 		kernelPackageName := kernelPackageName
+
+		if falcoVersionHasRelease(releases, FalcoVersions) && kernelPackageHasBeenCompiled(releases, kernelPackageName) {
+			log.Info().
+				Str("kernel_package_name", kernelPackageName).
+				Int("falco_driver_versions", len(FalcoVersions)).
+				Msg("Skipping, kernel package has already been compiled against all supported falco driver versions")
+
+			continue
+		}
 
 		parallelFns = append(parallelFns, func() error {
 			return process1KernelPackage(
@@ -189,6 +209,48 @@ func getFalcoDrivers(dockerCli *docker.Client, FalcoVersionNames []string) ([]fa
 	}
 
 	return FalcoVersions, nil
+}
+
+func falcoVersionHasRelease(releases []*github.RepositoryRelease, falcoVersions []falcoVersion) bool {
+	for _, fv := range falcoVersions {
+		for _, r := range releases {
+			if strings.HasPrefix(fv.Driver, r.GetName()) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func kernelPackageHasBeenCompiled(releases []*github.RepositoryRelease, kernelPackage string) bool {
+	var released int
+	for _, r := range releases {
+		for _, a := range r.Assets {
+			if kernelPackageFromProbeName(a.GetName()) == kernelPackage {
+				released++
+				break
+			}
+		}
+	}
+
+	return released < len(releases)
+}
+
+func kernelPackageFromProbeName(probe string) string {
+	var kernelPkg string
+	switch {
+	case strings.Contains(probe, "amazonlinux2"):
+		if probeSplit := strings.Split(probe, "_"); len(probeSplit) > 3 && probeSplit[2] != "" {
+			kernelPkg = probeSplit[2] // ... remove the 'falco_amazonlinux2_' prefix
+		}
+
+		if amzn2Index := strings.Index(kernelPkg, ".amzn2."); amzn2Index > 0 {
+			kernelPkg = kernelPkg[:amzn2Index] // ... trim everything from ".amzn2." (inclusive)
+		}
+	}
+
+	return kernelPkg
 }
 
 func handleErrs(errs []error) {

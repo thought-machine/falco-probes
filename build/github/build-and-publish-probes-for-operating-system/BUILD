@@ -10,5 +10,6 @@ go_binary(
         "//pkg/operatingsystem/resolver",
         "//pkg/repository",
         "//pkg/repository/ghreleases",
+        "//third_party/go:google_github",
     ],
 )
