@@ -93,7 +93,6 @@ func main() {
 		if falcoVersionHasRelease(releases, FalcoVersions) && kernelPackageHasBeenCompiled(releases, kernelPackageName) {
 			log.Info().
 				Str("kernel_package_name", kernelPackageName).
-				Int("falco_driver_versions", len(FalcoVersions)).
 				Msg("Skipping, kernel package has already been compiled against all supported falco driver versions")
 
 			continue
