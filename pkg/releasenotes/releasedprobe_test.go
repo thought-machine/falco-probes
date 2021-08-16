@@ -33,14 +33,14 @@ func TestKernelPackageFromProbeName(t *testing.T) {
 	}{
 		{
 			probeName:        "falco_amazonlinux2_4.14.101-91.76.amzn2.x86_64_1.o",
-			expKernelPackage: "4.14.101-91.76",
+			expKernelPackage: "4.14.101-91.76.amzn2",
 		},
 		{
 			probeName:        "falco_amazonlinux2_1.2.3.4.5.6.7.8.9-10.11.amzn2.x86_64_1.o",
-			expKernelPackage: "1.2.3.4.5.6.7.8.9-10.11",
+			expKernelPackage: "1.2.3.4.5.6.7.8.9-10.11.amzn2",
 		},
 		{
-			probeName:        "falco_notamazon_1.2.3.4.5.6.7.8.9-10.11.amzn2.x86_64_1.o",
+			probeName:        "falco_notamazon_1.2.3.4.5.6.7.8.9-10.11.ubuntu.x86_64_1.o",
 			expKernelPackage: "",
 		},
 	}

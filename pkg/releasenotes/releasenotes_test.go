@@ -34,24 +34,24 @@ func TestSetReleaseNotes(t *testing.T) {
 # Probes
 | Kernel Package | Probe |
 |----------------|-------|
-|4.14.238-182.422|falco_amazonlinux2_4.14.238-182.422.amzn2.x86_64_1.o|
-|4.14.33-59.34|falco_amazonlinux2_4.14.33-59.34.amzn2.x86_64_1.o|
-|4.14.26-54.32|falco_amazonlinux2_4.14.26-54.32.amzn2.x86_64_1.o|
+|4.14.238-182.422.amzn2|falco_amazonlinux2_4.14.238-182.422.amzn2.x86_64_1.o|
+|4.14.33-59.34.amzn2|falco_amazonlinux2_4.14.33-59.34.amzn2.x86_64_1.o|
+|4.14.26-54.32.amzn2|falco_amazonlinux2_4.14.26-54.32.amzn2.x86_64_1.o|
 `)
 
 	sre.AssertReleaseBody(t, 1, `
 # Probes
 | Kernel Package | Probe |
 |----------------|-------|
-|4.14.238-182.422|falco_amazonlinux2_4.14.238-182.422.amzn2.x86_64_1.o|
-|4.14.26-54.32|falco_amazonlinux2_4.14.26-54.32.amzn2.x86_64_1.o|
+|4.14.238-182.422.amzn2|falco_amazonlinux2_4.14.238-182.422.amzn2.x86_64_1.o|
+|4.14.26-54.32.amzn2|falco_amazonlinux2_4.14.26-54.32.amzn2.x86_64_1.o|
 `)
 
 	sre.AssertReleaseBody(t, 2, `
 # Probes
 | Kernel Package | Probe |
 |----------------|-------|
-|4.14.238-182.422|falco_amazonlinux2_4.14.238-182.422.amzn2.x86_64_1.o|
+|4.14.238-182.422.amzn2|falco_amazonlinux2_4.14.238-182.422.amzn2.x86_64_1.o|
 `)
 }
 

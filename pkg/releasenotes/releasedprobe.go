@@ -36,14 +36,12 @@ func ReleasedProbeFromMarkdownRow(s string) ReleasedProbe {
 func KernelPackageFromProbeName(probe string) string {
 	var kernelPkg string
 	switch {
-	case strings.Contains(probe, "amazonlinux2"):
+	case strings.Contains(probe, ".amzn2."):
 		if probeSplit := strings.Split(probe, "_"); len(probeSplit) > 3 && probeSplit[2] != "" {
 			kernelPkg = probeSplit[2] // ... remove the 'falco_amazonlinux2_' prefix
 		}
 
-		if amzn2Index := strings.Index(kernelPkg, ".amzn2."); amzn2Index > 0 {
-			kernelPkg = kernelPkg[:amzn2Index] // ... trim everything from ".amzn2." (inclusive)
-		}
+		kernelPkg = kernelPkg[:strings.Index(kernelPkg, ".amzn2.")+6] // ... trim everything from ".amzn2." (inclusive)
 	}
 
 	return kernelPkg
