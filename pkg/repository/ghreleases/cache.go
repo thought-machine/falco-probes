@@ -169,7 +169,9 @@ func (c *CachingGHReleasesClient) EditReleaseNotesByReleaseID(ctx context.Contex
 	}
 
 	c.dataMu.Lock()
-	c.releasesByID[releaseID].Body = &body
+	if r := c.releasesByID[releaseID]; r != nil {
+		r.Body = &body
+	}
 	c.dataMu.Unlock()
 
 	return nil
