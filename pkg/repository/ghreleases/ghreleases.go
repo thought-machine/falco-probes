@@ -6,9 +6,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/google/go-github/v37/github"
 	"github.com/thought-machine/falco-probes/internal/logging"
 	"github.com/thought-machine/falco-probes/pkg/repository"
+
+	"github.com/google/go-github/v37/github"
 	"golang.org/x/oauth2"
 )
 
@@ -33,7 +34,7 @@ func MustGHReleases(opts *Opts) *GHReleases {
 	}
 }
 
-// PublishProbe implmements repository.Repository.PublishProbe for GitHub Releases.
+// PublishProbe implements repository.Repository.PublishProbe for GitHub Releases.
 func (ghr *GHReleases) PublishProbe(driverVersion string, probePath string) error {
 	probeFileName := filepath.Base(probePath)
 	release, err := ghr.EnsureReleaseForDriverVersion(driverVersion)
@@ -71,7 +72,7 @@ func (ghr *GHReleases) PublishProbe(driverVersion string, probePath string) erro
 	return nil
 }
 
-// IsAlreadyMirrored implmements repository.Repository.IsAlreadyMirrored for GitHub Releases.
+// IsAlreadyMirrored implements repository.Repository.IsAlreadyMirrored for GitHub Releases.
 func (ghr *GHReleases) IsAlreadyMirrored(driverVersion string, probeName string) (bool, error) {
 	// Retrieve the releases
 	release, err := ghr.getReleaseByName(driverVersion)
@@ -85,6 +86,25 @@ func (ghr *GHReleases) IsAlreadyMirrored(driverVersion string, probeName string)
 	// log.Info().Str("using", *asset.BrowserDownloadURL).Msg("Probe is uploaded and available")
 	log.Info().Msgf("Found probe, access with: curl -LO \"%s\"", *asset.BrowserDownloadURL)
 	return true, nil
+}
+
+// GetReleases uses the github API to list all previous releases
+func (ghr *GHReleases) GetReleases() ([]*github.RepositoryRelease, error) {
+	releases, err := ghr.ghClient.ListReleases()
+	if err != nil {
+		return nil, fmt.Errorf("could not list releases: %w", err)
+	}
+
+	return releases, nil
+}
+
+// EditReleaseNotesByReleaseID uses the github API to edit the text content of an existing github release
+func (ghr *GHReleases) EditReleaseNotesByReleaseID(ctx context.Context, releaseID int64, body string) error {
+	if err := ghr.ghClient.EditReleaseNotesByReleaseID(ctx, releaseID, body); err != nil {
+		return fmt.Errorf("could not edit release notes: %w", err)
+	}
+
+	return nil
 }
 
 // getAssetFromReleaseByName uses the github API to identify whether the desired probe is an asset of the given release
