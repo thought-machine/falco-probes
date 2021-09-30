@@ -2,6 +2,7 @@ package ghreleases_test
 
 import (
 	"io/ioutil"
+	"math"
 	"path/filepath"
 	"testing"
 
@@ -53,8 +54,9 @@ func TestListReleaseAssets(t *testing.T) {
 		assert.ElementsMatch(t, initialReleaseAssets, releaseAssets)
 	}
 
-	// assert that we only have 1 extra API request with caching.
-	assert.Equal(t, uint64(2), cachingReleasesClient.GetAPIRequestsCount())
+	// assert the number of additional API requests made matches the number of pages of assets returned.
+	pages := math.Ceil(float64(len(initialReleaseAssets)) / float64(100))
+	assert.Equal(t, uint64(1+pages), cachingReleasesClient.GetAPIRequestsCount())
 }
 
 func TestCreateRelease(t *testing.T) {
