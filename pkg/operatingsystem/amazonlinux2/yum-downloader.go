@@ -6,9 +6,19 @@ import (
 	"github.com/thought-machine/falco-probes/pkg/docker"
 )
 
-// YumDownloaderDockerfile represents the contents of a Dockerfile to build the yumdownloader image which downloads RPM packages from AmazonLinux 2's repositories.
+// YumDownloaderDockerfile represents the contents of a Dockerfile to build the yumdownloader image which
+// downloads RPM packages from AmazonLinux 2's repositories. We enable additional kernels available
+// via amazon-linux-extras (when we know they will compile).
 const YumDownloaderDockerfile = `FROM amazonlinux:2
-RUN yum install -y yum-utils
+RUN yum install -y yum-utils 
+RUN export REPOS="kernel-ng kernel-5.4" \
+	&& for r in $REPOS; do \
+		amazon-linux-extras enable $r && \
+		# disable to allow us to obtain repositories which overlap.
+		amazon-linux-extras disable $r; \
+	done \
+	# enable all repositories.
+	&& sed -i 's/enabled = 0/enabled = 1/g' /etc/yum.repos.d/amzn2-extras.repo
 `
 
 // YumDownloaderRepository is the repository to build the yumdownloader image under.

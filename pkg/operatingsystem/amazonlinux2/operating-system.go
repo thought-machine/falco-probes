@@ -1,6 +1,7 @@
 package amazonlinux2
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -33,11 +34,16 @@ func (s *AmazonLinux2) GetName() string {
 
 // GetKernelPackageNames implements operatingsystem.OperatingSystem.GetKernelPackageNames for the amazonlinux2.
 func (s *AmazonLinux2) GetKernelPackageNames() ([]string, error) {
+	yumDownloaderImage, err := BuildYumDownloader(s.dockerClient)
+	if err != nil {
+		return nil, fmt.Errorf("could not build falco-driver-loader: %w", err)
+	}
+
 	out, err := s.dockerClient.Run(
 		&docker.RunOpts{
-			Image:      "docker.io/library/amazonlinux:2",
+			Image:      yumDownloaderImage,
 			Entrypoint: []string{"bash"},
-			Cmd:        []string{"-c", "yum --showduplicates list kernel-devel | tail -n+3 | awk '{ print $2 }'"},
+			Cmd:        []string{"-c", "yum --showduplicates list kernel-devel | tail -n+3 | awk '{ print $2 }' | sort -uV"},
 		},
 	)
 	if err != nil {

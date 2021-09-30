@@ -27,6 +27,12 @@ func TestBuildEBPFProbe(t *testing.T) {
 		{"0.26.0", "amazonlinux2", "4.14.200-155.322.amzn2"},
 		{"0.25.0", "amazonlinux2", "4.14.200-155.322.amzn2"},
 		{"0.24.0", "amazonlinux2", "4.14.200-155.322.amzn2"},
+
+		// Additional tests for extra amzn2 kernels
+		{"0.24.0", "amazonlinux2", "4.14.243-185.433.amzn2"},
+		{"0.29.0", "amazonlinux2", "4.14.243-185.433.amzn2"},
+		{"0.24.0", "amazonlinux2", "5.4.105-48.177.amzn2"},
+		{"0.29.0", "amazonlinux2", "5.4.105-48.177.amzn2"},
 	}
 
 	cli := docker.MustClient()
