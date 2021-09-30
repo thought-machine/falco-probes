@@ -2,7 +2,6 @@ package ghreleases_test
 
 import (
 	"context"
-	"os"
 	"sync"
 	"testing"
 
@@ -19,10 +18,7 @@ const (
 )
 
 func getGitHubAuthToken(t *testing.T) string {
-	token := os.Getenv("GITHUB_TOKEN")
-	if token == "" {
-		t.Skipf("GITHUB_TOKEN not set")
-	}
+	token := "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"
 	return token
 }
 

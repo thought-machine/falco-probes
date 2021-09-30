@@ -53,8 +53,8 @@ func TestListReleaseAssets(t *testing.T) {
 		assert.ElementsMatch(t, initialReleaseAssets, releaseAssets)
 	}
 
-	// assert that we only have 1 extra API request with caching.
-	assert.Equal(t, uint64(2), cachingReleasesClient.GetAPIRequestsCount())
+	// assert the number of additional API requests made to matches the number of pages of assets returned.
+	assert.Equal(t, 1+len(initialReleaseAssets), cachingReleasesClient.GetAPIRequestsCount())
 }
 
 func TestCreateRelease(t *testing.T) {
