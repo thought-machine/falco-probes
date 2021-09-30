@@ -11,7 +11,7 @@ import (
 // via amazon-linux-extras (when we know they will compile).
 const YumDownloaderDockerfile = `FROM amazonlinux:2
 RUN yum install -y yum-utils 
-RUN export REPOS="kernel-ng kernel-5.4" \
+RUN export REPOS="kernel-5.4" \
 	&& for r in $REPOS; do \
 		amazon-linux-extras enable $r && \
 		# disable to allow us to obtain repositories which overlap.
