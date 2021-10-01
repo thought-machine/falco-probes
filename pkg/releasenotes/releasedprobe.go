@@ -25,7 +25,7 @@ func ReleasedProbeFromMarkdownRow(s string) ReleasedProbe {
 
 	s = s[1 : len(s)-1] // remove preceding and trailing |
 	split := strings.Split(s, "|")
-	if len(split) != 2 {
+	if len(split) != 2 || split[0] == strings.Repeat("-", len(split[0])) || split[0] == " Kernel Package " {
 		return ReleasedProbe{}
 	}
 

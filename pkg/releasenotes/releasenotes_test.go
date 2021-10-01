@@ -70,6 +70,70 @@ func createStubReleases(probeByRelease ...[]string) []*github.RepositoryRelease 
 	return releases
 }
 
+func TestFilterPackages(t *testing.T) {
+	probes := releasenotes.ReleasedProbes{
+		{KernelPackage: "kp1"},
+		{KernelPackage: "kp1"},
+		{KernelPackage: "kp1"},
+
+		{KernelPackage: "kp2"},
+		{KernelPackage: "kp2"},
+
+		{KernelPackage: "kp3"},
+		{KernelPackage: "kp3"},
+		{KernelPackage: "kp3"},
+
+		{KernelPackage: "kp4"},
+	}
+
+	kpns := []string{"kp1", "kp2", "kp3", "kp4", "kp5"}
+
+	results := probes.ListKernelPackagesToCompile(kpns, 3)
+
+	assert.Equal(t, []string{"kp2", "kp4", "kp5"}, results)
+}
+
+func TestParseProbesFromReleaseNotes(t *testing.T) {
+	releaseNotes := `
+This is some cruft at the start of the release
+# Probes
+| Kernel Package | Probe |
+|----------------|-------|
+|4.14.243-185.433.amzn2|falco_amazonlinux2_4.14.243-185.433.amzn2.x86_64_1.o|
+|4.14.241-184.433.amzn2|falco_amazonlinux2_4.14.241-184.433.amzn2.x86_64_1.o|
+|4.14.238-182.422.amzn2|falco_amazonlinux2_4.14.238-182.422.amzn2.x86_64_1.o|
+|4.14.238-182.421.amzn2|falco_amazonlinux2_4.14.238-182.421.amzn2.x86_64_1.o|
+not a | probe
+also|not|a|probe
+
+this is some cruft at the end of the release`
+
+	release := &github.RepositoryRelease{Body: &releaseNotes}
+
+	exp := releasenotes.ReleasedProbes{
+		{
+			KernelPackage: "4.14.243-185.433.amzn2",
+			Probe:         "falco_amazonlinux2_4.14.243-185.433.amzn2.x86_64_1.o",
+		},
+		{
+			KernelPackage: "4.14.241-184.433.amzn2",
+			Probe:         "falco_amazonlinux2_4.14.241-184.433.amzn2.x86_64_1.o",
+		},
+		{
+			KernelPackage: "4.14.238-182.422.amzn2",
+			Probe:         "falco_amazonlinux2_4.14.238-182.422.amzn2.x86_64_1.o",
+		},
+		{
+			KernelPackage: "4.14.238-182.421.amzn2",
+			Probe:         "falco_amazonlinux2_4.14.238-182.421.amzn2.x86_64_1.o",
+		},
+	}
+
+	result := releasenotes.ParseProbesFromReleaseNotes(release)
+
+	assert.Equal(t, exp, result)
+}
+
 type stubReleaseEditor struct {
 	releases []*github.RepositoryRelease
 }

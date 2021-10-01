@@ -9,6 +9,7 @@ import (
 	"github.com/thought-machine/falco-probes/pkg/falcodriverbuilder"
 	"github.com/thought-machine/falco-probes/pkg/operatingsystem"
 	"github.com/thought-machine/falco-probes/pkg/operatingsystem/resolver"
+	"github.com/thought-machine/falco-probes/pkg/releasenotes"
 	"github.com/thought-machine/falco-probes/pkg/repository"
 	"github.com/thought-machine/falco-probes/pkg/repository/ghreleases"
 )
@@ -73,6 +74,17 @@ func main() {
 	log.Info().
 		Int("amount", len(kernelPackageNames)).
 		Msg("Retrieving kernel packages")
+
+	log.Info().Msg("Getting list of previously compiled probes from release notes")
+	if releases, err := ghReleases.GetReleases(); err != nil {
+		log.Warn().Err(err).Msg("could not get release notes. unable to skip previously compiled probes")
+	} else {
+		var releasedProbes releasenotes.ReleasedProbes
+		for _, r := range releases {
+			releasedProbes = append(releasedProbes, releasenotes.ParseProbesFromReleaseNotes(r)...)
+		}
+		kernelPackageNames = releasedProbes.ListKernelPackagesToCompile(kernelPackageNames, len(releases))
+	}
 
 	parallelFns := []func() error{}
 	for _, kernelPackageName := range kernelPackageNames {
