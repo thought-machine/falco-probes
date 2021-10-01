@@ -8,6 +8,7 @@ go_binary(
         "//pkg/falcodriverbuilder",
         "//pkg/operatingsystem",
         "//pkg/operatingsystem/resolver",
+        "//pkg/releasenotes",
         "//pkg/repository",
         "//pkg/repository/ghreleases",
     ],
