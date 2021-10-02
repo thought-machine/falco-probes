@@ -70,7 +70,7 @@ func createStubReleases(probeByRelease ...[]string) []*github.RepositoryRelease 
 	return releases
 }
 
-func TestFilterPackages(t *testing.T) {
+func TestListKernelPackagesToCompile(t *testing.T) {
 	probes := releasenotes.ReleasedProbes{
 		{KernelPackage: "kp1"},
 		{KernelPackage: "kp1"},

@@ -72,7 +72,7 @@ func main() {
 	}
 
 	log.Info().
-		Int("amount", len(kernelPackageNames)).
+		Int("total_kernel_packages", len(kernelPackageNames)).
 		Msg("Retrieving kernel packages")
 
 	log.Info().Msg("Getting list of previously compiled probes from release notes")
@@ -84,6 +84,10 @@ func main() {
 			releasedProbes = append(releasedProbes, releasenotes.ParseProbesFromReleaseNotes(r)...)
 		}
 		kernelPackageNames = releasedProbes.ListKernelPackagesToCompile(kernelPackageNames, len(releases))
+
+		log.Info().
+			Int("kernel_packages_to_compile", len(kernelPackageNames)).
+			Msg("ignoring previously compiled kernel packages")
 	}
 
 	parallelFns := []func() error{}
