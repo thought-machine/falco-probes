@@ -24,6 +24,7 @@ var FalcoVersionNames = []string{
 	"0.26.0", // falco-driver-version: 2aa88dcf6243982697811df4c1b484bcbe9488a2
 	"0.28.1", // falco-driver-version: 5c0b863ddade7a45568c0ac97d037422c9efb750
 	"0.29.1", // falco-driver-version: 17f5df52a7d9ed6bb12d3b1768460def8439936d
+	"0.30.0", // falco-driver-version: 3aa7a83bf7b9e6229a3824e3fd1f4452d1e95cb4
 }
 
 type falcoVersion struct {
