@@ -5,7 +5,10 @@ go_library(
         "releasenotes.go",
         "tmpl.go",
     ],
-    visibility = ["//cmd/..."],
+    visibility = [
+        "//build/...",
+        "//cmd/...",
+    ],
     deps = [
         "//third_party/go:google_github",
     ],
