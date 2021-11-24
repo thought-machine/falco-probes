@@ -1,11 +1,23 @@
 package docker
 
 import (
+	"sync"
+
 	"github.com/docker/docker/client"
 	"github.com/thought-machine/falco-probes/internal/logging"
 )
 
+var DockerClient *Client
+
 var log = logging.Logger
+
+var once sync.Once
+
+func init() {
+	once.Do(func() {
+		DockerClient = MustClient()
+	})
+}
 
 // Client abstracts the docker client into useful functions.
 type Client struct {

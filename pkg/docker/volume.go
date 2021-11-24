@@ -10,6 +10,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/volume"
 	"github.com/thought-machine/falco-probes/pkg/operatingsystem"
 )
@@ -18,17 +19,51 @@ const (
 	// BusyBoxImage is the image to use for BusyBox, this is used as the smallest Docker image that we can create a container from.
 	// We cannot use scratch unless we build our own blank image from scratch, which adds more complexity.
 	BusyBoxImage = "docker.io/library/busybox:1.33.1"
+
+	// LabelProject is the value to use for the `thoughtmachine.net/project` label.
+	LabelProject = "falco-probes"
 )
 
 // MustCreateVolume creates a new docker volume and returns its name, fatally logging any errors.
 func (c *Client) MustCreateVolume() operatingsystem.Volume {
 	ctx := context.Background()
-	vol, err := c.upstream.VolumeCreate(ctx, volume.VolumeCreateBody{})
+	vol, err := c.upstream.VolumeCreate(ctx, volume.VolumeCreateBody{
+		Labels: map[string]string{
+			"thoughtmachine.net/project": LabelProject,
+		},
+	})
 	if err != nil {
 		log.Fatal().Err(err).Msg("could not create docker volume")
 	}
 
 	return operatingsystem.Volume(vol.Name)
+}
+
+func (c *Client) MustCleanupVolumes() {
+	ctx := context.Background()
+
+	volumes, err := c.upstream.VolumeList(ctx, filters.NewArgs(
+		filters.Arg("label", "thoughtmachine.net/project="+LabelProject),
+	))
+
+	if err != nil {
+		log.Fatal().Err(err).Msg("could not filter docker volume(s)")
+	}
+
+	if len(volumes.Volumes) > 0 {
+		log.Info().Int("amount", len(volumes.Volumes)).Msg("removing old volumes")
+	}
+
+	errs := []error{}
+	for _, volume := range volumes.Volumes {
+		err := c.upstream.VolumeRemove(ctx, volume.Name, false)
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+	if len(errs) > 0 {
+		log.Fatal().Errs("errors", errs).Msg("could not remove docker volume(s)")
+	}
 }
 
 // MustRemoveVolumes removes the given volumes, fatally logging any errors.

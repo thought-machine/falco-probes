@@ -39,7 +39,7 @@ func main() {
 		Msg("Getting kernel package names")
 	kernelPackageNames, err := operatingSystem.GetKernelPackageNames()
 	if err != nil {
-		log.Fatal().Err(err).Msg("could not kernel package names")
+		log.Fatal().Err(err).Msg("could not get kernel package names")
 	}
 
 	log.Info().
