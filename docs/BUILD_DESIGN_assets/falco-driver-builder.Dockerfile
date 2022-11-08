@@ -1,4 +1,5 @@
 ARG FALCO_VERSION=0.28.1
+
 FROM "docker.io/falcosecurity/falco-driver-loader:${FALCO_VERSION}"
 
 ENV FALCO_DRIVER_LOADER_PATH="/usr/bin/falco-driver-loader"
@@ -8,6 +9,12 @@ SHELL ["/bin/bash", "-c"]
 RUN set -Eeuxo pipefail; \
     # Disable downloading from Falco driver repository.
     sed -i 's/ENABLE_DOWNLOAD=.*/ENABLE_DOWNLOAD=""/g' "${FALCO_DRIVER_LOADER_PATH}" && \
+    # Add chroot.
+    sed -i -e '/^ARCH=.*/i\' -e '[ -n "${CHROOT_DIR}" ] && CHROOT_DIR= exec /usr/sbin/chroot "${CHROOT_DIR}" "${0}"'  "${FALCO_DRIVER_LOADER_PATH}" && \
+    # Debug make.
+    sed -i 's#make \(-C .* \)> /dev/null#make -d \1#g' "${FALCO_DRIVER_LOADER_PATH}" && \
+    # Patch COS kernel Makefile.build to use always rather than always-y variable.
+    sed -i -e '/randomized_struct_fields_end.*/a\' -e 'sed -i \'s/always-y/always/g\' scripts/Makefile.build' "${FALCO_DRIVER_LOADER_PATH}" && \
     # Enable compilation of eBPF driver.
     sed -i 's/ENABLE_COMPILE=.*/ENABLE_COMPILE="yes"/g' "${FALCO_DRIVER_LOADER_PATH}" && \
     sed -i 's/DRIVER=.*/DRIVER="bpf"/g' "${FALCO_DRIVER_LOADER_PATH}" && \
