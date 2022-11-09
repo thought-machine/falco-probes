@@ -9,6 +9,11 @@ import (
 	"github.com/thought-machine/falco-probes/pkg/operatingsystem"
 )
 
+var (
+	AmazonLinux2Image      = "docker.io/library/amazonlinux:2"
+	FalcoDriverLoaderImage = "docker.io/falcosecurity/falco-driver-loader:0.33.0"
+)
+
 // NewKernelPackage returns a new hydrated example implementation operatingsystem.KernelPackage.
 func NewKernelPackage(dockerClient *docker.Client, name string) (*operatingsystem.KernelPackage, error) {
 	kP := &operatingsystem.KernelPackage{
@@ -126,7 +131,7 @@ func addKernelReleaseAndVersionAndMachine(dockerClient *docker.Client, kp *opera
 func findKernelSrcPath(dockerClient *docker.Client, kernelSrcsVol operatingsystem.Volume, name string) (string, error) {
 	out, err := dockerClient.Run(
 		&docker.RunOpts{
-			Image:      "docker.io/library/amazonlinux:2",
+			Image:      AmazonLinux2Image,
 			Entrypoint: []string{"find"},
 			Cmd:        []string{"/usr/src/", "-name", "*" + name + "*", "-type", "d"},
 			Volumes: map[operatingsystem.Volume]string{
@@ -144,7 +149,7 @@ func findKernelSrcPath(dockerClient *docker.Client, kernelSrcsVol operatingsyste
 func getKernelRelease(dockerClient *docker.Client, kernelSrcsVol operatingsystem.Volume, kernelSrcPath string) (string, error) {
 	out, err := dockerClient.Run(
 		&docker.RunOpts{
-			Image:      "docker.io/falcosecurity/falco-driver-loader:0.28.1",
+			Image:      FalcoDriverLoaderImage,
 			Entrypoint: []string{"/bin/bash"},
 			Cmd:        []string{"-c", "make kernelrelease | tail -n1"},
 			Volumes: map[operatingsystem.Volume]string{
@@ -163,7 +168,7 @@ func getKernelRelease(dockerClient *docker.Client, kernelSrcsVol operatingsystem
 func getKernelVersion(dockerClient *docker.Client, kernelSrcsVol operatingsystem.Volume, kernelSrcPath string) (string, error) {
 	out, err := dockerClient.Run(
 		&docker.RunOpts{
-			Image:      "docker.io/falcosecurity/falco-driver-loader:0.28.1",
+			Image:      FalcoDriverLoaderImage,
 			Entrypoint: []string{"/bin/bash"},
 			Cmd:        []string{"-c", "find /usr/src -name compile.h | grep 'generated/compile.h' | xargs grep -ho UTS_VERSION.* | cut -f2 -d\\\""},
 			Volumes: map[operatingsystem.Volume]string{
@@ -182,7 +187,7 @@ func getKernelVersion(dockerClient *docker.Client, kernelSrcsVol operatingsystem
 func getKernelMachine(dockerClient *docker.Client, kernelSrcsVol operatingsystem.Volume, kernelSrcPath string) (string, error) {
 	out, err := dockerClient.Run(
 		&docker.RunOpts{
-			Image:      "docker.io/falcosecurity/falco-driver-loader:0.28.1",
+			Image:      FalcoDriverLoaderImage,
 			Entrypoint: []string{"/bin/bash"},
 			Cmd:        []string{"-c", "find /usr/src -name compile.h | grep 'generated/compile.h' | xargs grep -ho UTS_MACHINE.* | cut -f2 -d\\\""},
 			Volumes: map[operatingsystem.Volume]string{
