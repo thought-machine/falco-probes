@@ -10,7 +10,7 @@ RUN set -Eeuxo pipefail; \
     export DRIVERS_REPO=$(grep ^DRIVERS_REPO "${FALCO_DRIVER_LOADER_PATH}" | cut -f2 -d\") && \
     export DRIVER_VERSION=$(grep ^DRIVER_VERSION "${FALCO_DRIVER_LOADER_PATH}" | cut -f2 -d\") && \
     export DRIVER_NAME=$(grep ^DRIVER_NAME "${FALCO_DRIVER_LOADER_PATH}" | cut -f2 -d\") && \
-    # Use falco-driver-loader from 0.30.0 (the patches below work with that script.)
+    # Use falco-driver-loader from 0.33.0 (the patches below work with that script.)
     curl -L https://raw.githubusercontent.com/falcosecurity/falco/0.33.0/scripts/falco-driver-loader \
     -o /usr/bin/falco-driver-loader && chmod +x /usr/bin/falco-driver-loader && \
     # Set DRIVERS_REPO to match existing falco-driver-loader script.
