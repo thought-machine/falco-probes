@@ -71,18 +71,18 @@ func BuildEBPFProbe(
 		return "", "", fmt.Errorf("could not build falco probe: %w", err)
 	}
 
-	probeName, err := GetProbeNameFromBuildOutput(buildOut)
+	builtProbePath, err := GetProbePathFromBuildOutput(buildOut)
 	if err != nil {
 		log.Error().Str("build-output", buildOut)
 		return "", "", fmt.Errorf("could not build falco probe: %w", err)
 	}
 
-	probeReader, err := ExtractProbeFromVolume(cli, builtProbeVolume, probeName)
+	probeReader, err := ExtractProbeFromVolume(cli, builtProbeVolume, builtProbePath)
 	if err != nil {
 		return "", "", fmt.Errorf("could not extract probe from built probe volume: %w", err)
 	}
 
-	outProbePath, err := WriteProbeToFile(falcoDriverVersion, probeName, probeReader)
+	outProbePath, err := WriteProbeToFile(falcoDriverVersion, builtProbePath, probeReader)
 	if err != nil {
 		return "", "", fmt.Errorf("could not write probe to file :%w", err)
 	}
