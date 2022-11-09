@@ -71,7 +71,7 @@ func ExtractProbeFromVolume(
 ) (io.Reader, error) {
 	fileBytes, err := dockerClient.GetFileFromVolume(
 		builtProbeVolume,
-		filepath.Dir(builtProbePath),
+		BuiltFalcoProbesDir,
 		builtProbePath,
 	)
 	if err != nil {
