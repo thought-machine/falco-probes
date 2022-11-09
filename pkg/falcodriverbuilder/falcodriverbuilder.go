@@ -53,7 +53,7 @@ func BuildImage(
 
 // GetProbeNameFromBuildOutput returns the built Falco probe name from the build output or an error if it could not be found.
 func GetProbeNameFromBuildOutput(buildOutput string) (string, error) {
-	reStr := strings.ReplaceAll(regexp.QuoteMeta(BuiltFalcoProbesDir)+`falco\_.*`, `/`, `\/`)
+	reStr := strings.ReplaceAll(regexp.QuoteMeta(BuiltFalcoProbesDir)+`.*falco\_.*`, `/`, `\/`)
 	re := regexp.MustCompile(reStr)
 	probeMatch := re.FindString(buildOutput)
 	if len(probeMatch) < 1 {
