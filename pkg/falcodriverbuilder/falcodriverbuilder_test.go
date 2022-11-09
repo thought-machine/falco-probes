@@ -14,6 +14,7 @@ func TestBuildImage(t *testing.T) {
 		FalcoVersion     string
 		ExpectedImageFQN string
 	}{
+		{"0.33.0", "docker.io/thoughtmachine/falco-driver-builder:0.33.0"},
 		{"0.29.1", "docker.io/thoughtmachine/falco-driver-builder:0.29.1"},
 		{"0.29.0", "docker.io/thoughtmachine/falco-driver-builder:0.29.0"},
 		{"0.28.1", "docker.io/thoughtmachine/falco-driver-builder:0.28.1"},
@@ -39,7 +40,7 @@ func TestBuildImage(t *testing.T) {
 	}
 }
 
-func TestGetProbeNameFromBuildOutput(t *testing.T) {
+func TestGetProbePathFromBuildOutput(t *testing.T) {
 	var tests = []struct {
 		Description       string
 		BuildOutput       string
@@ -49,20 +50,20 @@ func TestGetProbeNameFromBuildOutput(t *testing.T) {
 		{"Probe name is found",
 			`* Trying to compile the eBPF probe (falco_amazonlinux2_4.14.232-177.418.amzn2.x86_64_1.o)
 * eBPF probe located in /root/.falco/falco_amazonlinux2_4.14.232-177.418.amzn2.x86_64_1.o
-* Success: eBPF probe symlinked to /root/.falco/falco-bpf.o`, "falco_amazonlinux2_4.14.232-177.418.amzn2.x86_64_1.o", nil},
+* Success: eBPF probe symlinked to /root/.falco/falco-bpf.o`, "/root/.falco/falco_amazonlinux2_4.14.232-177.418.amzn2.x86_64_1.o", nil},
 		{"Probe name is not found",
 			`* Trying to compile the eBPF probe (falco_amazonlinux2_4.14.232-176.381.amzn2.x86_64_1.o)
 make[1]: *** /lib/modules/4.14.232-176.381.amzn2.x86_64/build: No such file or directory.  Stop.
 make: *** [Makefile:18: all] Error 2
 mv: cannot stat '/usr/src/falco-5c0b863ddade7a45568c0ac97d037422c9efb750/bpf/probe.o': No such file or directory
-Unable to load the falco eBPF probe`, "", falcodriverbuilder.ErrCouldNotFindProbeNameInOutput},
+Unable to load the falco eBPF probe`, "", falcodriverbuilder.ErrCouldNotFindProbePathInOutput},
 	}
 
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.Description, func(t *testing.T) {
 			t.Parallel()
-			actualProbeName, err := falcodriverbuilder.GetProbeNameFromBuildOutput(tt.BuildOutput)
+			actualProbeName, err := falcodriverbuilder.GetProbePathFromBuildOutput(tt.BuildOutput)
 			if tt.ExpectedErr == nil {
 				assert.NoError(t, err)
 			} else {
@@ -82,6 +83,7 @@ func TestGetDriverVersion(t *testing.T) {
 		FalcoVersion               string
 		ExpectedFalcoDriverVersion string
 	}{
+		{"0.33.0", "3.0.1+driver"},
 		{"0.29.1", "17f5df52a7d9ed6bb12d3b1768460def8439936d"},
 		{"0.29.0", "17f5df52a7d9ed6bb12d3b1768460def8439936d"},
 		{"0.28.1", "5c0b863ddade7a45568c0ac97d037422c9efb750"},
