@@ -27,8 +27,8 @@ const (
 )
 
 var (
-	// ErrCouldNotFindProbeNameInOutput is returned when a probe could not be found in the output text.
-	ErrCouldNotFindProbeNameInOutput = errors.New("could not find build probe name in output")
+	// ErrCouldNotFindProbePathInOutput is returned when a probe could not be found in the output text.
+	ErrCouldNotFindProbePathInOutput = errors.New("could not find built probe path in output")
 )
 
 // BuildImage builds a falco-driver-builder docker image for the given Falco Version and returns the built image's FQN.
@@ -51,25 +51,24 @@ func BuildImage(
 	return imageFQN, nil
 }
 
-// GetProbeNameFromBuildOutput returns the built Falco probe name from the build output or an error if it could not be found.
-func GetProbeNameFromBuildOutput(buildOutput string) (string, error) {
-	reStr := strings.ReplaceAll(regexp.QuoteMeta(BuiltFalcoProbesDir)+`falco\_.*`, `/`, `\/`)
+// GetProbePathFromBuildOutput returns the built Falco probe path from the build output or an error if it could not be found.
+func GetProbePathFromBuildOutput(buildOutput string) (string, error) {
+	reStr := strings.ReplaceAll(regexp.QuoteMeta(BuiltFalcoProbesDir)+`.*falco\_.*`, `/`, `\/`)
 	re := regexp.MustCompile(reStr)
-	probeMatch := re.FindString(buildOutput)
-	if len(probeMatch) < 1 {
-		return "", ErrCouldNotFindProbeNameInOutput
+	pathMatch := re.FindString(buildOutput)
+	if len(pathMatch) < 1 {
+		return "", ErrCouldNotFindProbePathInOutput
 	}
 
-	return filepath.Base(probeMatch), nil
+	return pathMatch, nil
 }
 
 // ExtractProbeFromVolume extracts the built Falco eBPF probe by its name from the given probe volume.
 func ExtractProbeFromVolume(
 	dockerClient *docker.Client,
 	builtProbeVolume operatingsystem.Volume,
-	probeName string,
+	builtProbePath string,
 ) (io.Reader, error) {
-	builtProbePath := filepath.Join(BuiltFalcoProbesDir, probeName)
 	fileBytes, err := dockerClient.GetFileFromVolume(
 		builtProbeVolume,
 		BuiltFalcoProbesDir,
@@ -97,8 +96,8 @@ func GetDriverVersion(dockerClient *docker.Client, image string) (string, error)
 }
 
 // WriteProbeToFile writes the given probe bytes to the distribution structure determined by the falco driver version and probe name.
-func WriteProbeToFile(falcoDriverVersion string, probeName string, probeReader io.Reader) (string, error) {
-	outProbePath := filepath.Join("dist", falcoDriverVersion, probeName)
+func WriteProbeToFile(falcoDriverVersion string, builtProbePath string, probeReader io.Reader) (string, error) {
+	outProbePath := filepath.Join("dist", falcoDriverVersion, filepath.Base(builtProbePath))
 	if err := os.MkdirAll(filepath.Dir(outProbePath), os.ModePerm); err != nil {
 		return "", err
 	}
