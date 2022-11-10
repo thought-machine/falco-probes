@@ -1,19 +1,21 @@
 #!/bin/bash
 # This script demonstrates the building of an Amazon Linux 2 Falco eBPF probe.
-#set -Eeuox pipefail
-set -x
+set -Eeuox pipefail
 
 # FALCO_VERSION is the version of Falco to compile the eBPF probe for.
-FALCO_VERSION="0.28.1"
+FALCO_VERSION="0.33.0"
+# UBUNTU_VERSION is the version of Ubuntu to use as the build environment.
+UBUNTU_VERSION="22.04"
 # The chosen kernel is defined as `KERNEL_PACKAGE`.
-#if [ -v 1 ]; then
-#    echo "A kernel package version is expected as an argument."
-#    exit 2
-#fi
+if [ -v $1 ]; then
+    echo "A kernel package version is expected as an argument."
+    exit 2
+fi
+# Examples:
+# 4.14.232-176.381.amzn2
 KERNEL_PACKAGE="$1"
-KERNEL_PACKAGE="4.14.232-176.381.amzn2"
 # FALCO_DRIVER_BUILD_IMAGE is the docker image tag for the patched version of falco-driver-loader
-FALCO_DRIVER_BUILDER_IMAGE="falco-driver-loader:${FALCO_VERSION}"
+FALCO_DRIVER_BUILDER_IMAGE="falco-driver-builder:${FALCO_VERSION}"
 
 # 1. Build a modified `falco-driver-loader` image (called `falco-driver-builder`) that supports inputs:
 # - `UNAME_R` (mock output of `uname -r`)
@@ -76,19 +78,15 @@ UNAME_M=$(docker run --rm \
 )
 
 # 7. Build Probe using patched *falco-driver-loader* script in *falco-driver-builder* with mocked values, *Kernel sources*, *Kernel configuration* and mocked *Target ID*.
-#docker run --name amazonlinux2-ebpf-probe -d --env UNAME_V="$UNAME_V" --env UNAME_R="$UNAME_R" --env UNAME_M="$UNAME_M" --entrypoint=""  --volume "${usr_src_volume}":/host/usr/src/ --volume "${lib_modules_volume}":/host/lib/modules/ --volume "${etc_volume}":/host/etc/ "${FALCO_DRIVER_BUILDER_IMAGE}" sleep 99999
-#docker exec amazonlinux2-ebpf-probe bash -c "/bin/sed -i 's#make \(-C .* \)> /dev/null#make -d \1#g' /usr/bin/falco-driver-loader"
-#docker exec --env UNAME_V="$UNAME_V" --env UNAME_R="$UNAME_R" --env UNAME_M="$UNAME_M" amazonlinux2-ebpf-probe /usr/bin/falco-driver-loader 2>&1 | tee ~/Temp/falco-aws.log
-#docker kill amazonlinux2-ebpf-probe
-#docker rm amazonlinux2-ebpf-probe
 docker run --rm \
     --env UNAME_V="$UNAME_V" \
     --env UNAME_R="$UNAME_R" \
     --env UNAME_M="$UNAME_M" \
-    --volume "${usr_src_volume}":/host/usr/src/ \
-    --volume "${lib_modules_volume}":/host/lib/modules/ \
-    --volume "${etc_volume}":/host/etc/ \
-    "${FALCO_DRIVER_BUILDER_IMAGE}" 2>&1 | tee /tmp/falco-aws.log
+    --env HOST_ROOT="/host" \
+    --volume "${usr_src_volume}":"/host/usr/src/" \
+    --volume "${lib_modules_volume}":"/lib/modules/" \
+    --volume "${etc_volume}":"/host/etc/" \
+    "${FALCO_DRIVER_BUILDER_IMAGE}"
 
 # Clean up Docker volumes
 docker volume rm "${usr_src_volume}" "${lib_modules_volume}" "${etc_volume}"
