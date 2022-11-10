@@ -131,7 +131,7 @@ func addKernelReleaseAndVersionAndMachine(dockerClient *docker.Client, kp *opera
 func findKernelSrcPath(dockerClient *docker.Client, kernelSrcsVol operatingsystem.Volume, name string) (string, error) {
 	out, err := dockerClient.Run(
 		&docker.RunOpts{
-			Image:      AmazonLinux2Image,
+			Image:      amazonLinux2Image,
 			Entrypoint: []string{"find"},
 			Cmd:        []string{"/usr/src/", "-name", "*" + name + "*", "-type", "d"},
 			Volumes: map[operatingsystem.Volume]string{
@@ -149,7 +149,7 @@ func findKernelSrcPath(dockerClient *docker.Client, kernelSrcsVol operatingsyste
 func getKernelRelease(dockerClient *docker.Client, kernelSrcsVol operatingsystem.Volume, kernelSrcPath string) (string, error) {
 	out, err := dockerClient.Run(
 		&docker.RunOpts{
-			Image:      FalcoDriverLoaderImage,
+			Image:      falcoDriverLoaderImage,
 			Entrypoint: []string{"/bin/bash"},
 			Cmd:        []string{"-c", "make kernelrelease | tail -n1"},
 			Volumes: map[operatingsystem.Volume]string{
@@ -168,7 +168,7 @@ func getKernelRelease(dockerClient *docker.Client, kernelSrcsVol operatingsystem
 func getKernelVersion(dockerClient *docker.Client, kernelSrcsVol operatingsystem.Volume, kernelSrcPath string) (string, error) {
 	out, err := dockerClient.Run(
 		&docker.RunOpts{
-			Image:      FalcoDriverLoaderImage,
+			Image:      falcoDriverLoaderImage,
 			Entrypoint: []string{"/bin/bash"},
 			Cmd:        []string{"-c", "find /usr/src -name compile.h | grep 'generated/compile.h' | xargs grep -ho UTS_VERSION.* | cut -f2 -d\\\""},
 			Volumes: map[operatingsystem.Volume]string{
@@ -187,7 +187,7 @@ func getKernelVersion(dockerClient *docker.Client, kernelSrcsVol operatingsystem
 func getKernelMachine(dockerClient *docker.Client, kernelSrcsVol operatingsystem.Volume, kernelSrcPath string) (string, error) {
 	out, err := dockerClient.Run(
 		&docker.RunOpts{
-			Image:      FalcoDriverLoaderImage,
+			Image:      falcoDriverLoaderImage,
 			Entrypoint: []string{"/bin/bash"},
 			Cmd:        []string{"-c", "find /usr/src -name compile.h | grep 'generated/compile.h' | xargs grep -ho UTS_MACHINE.* | cut -f2 -d\\\""},
 			Volumes: map[operatingsystem.Volume]string{
