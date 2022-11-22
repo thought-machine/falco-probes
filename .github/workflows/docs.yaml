@@ -17,6 +17,9 @@ jobs:
             git clone -q https://cos.googlesource.com/cos/manifest-snapshots /tmp/cos &&
             REFS=($(git -C /tmp/cos ls-remote -q --sort=-v:refname --head origin 'refs/heads/release-R*' | head -n1)) &&
             MILESTONE="${REFS[1]##*release-R}" &&
-            BUILD_ID="$(git -C /tmp/cos tag --sort=-v:refname -l --contains "${REFS[0]}" | head -n1)" &&
+            BUILD_IDS=$(git -C /tmp/cos log --pretty="%D" "origin/release-R${MILESTONE}" | sed -e 's/.*tag: \([0-9\.]\+\).*/\1/g') &&
+            for BUILD_ID in ${BUILD_IDS[@]}; do \
+              if curl -fIs "https://storage.googleapis.com/cos-tools/${BUILD_ID}/kernel_commit" > /dev/null; then break; fi \
+            done &&
             echo "cos-$MILESTONE-${BUILD_ID//./-}")
           bash ./docs/BUILD_DESIGN_assets/build-googlecos-ebpf-probe.sh "$last_image_name"
