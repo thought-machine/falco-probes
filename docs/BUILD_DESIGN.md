@@ -84,12 +84,20 @@ Thus to build a Falco eBPF probe in Docker, we can:
 6. Mock the _Kernel Machine_ (output of `uname -m`) value.
 7. Build Probe using patched _falco-driver-loader_ script in _falco-driver-builder_ with mocked values, _Kernel sources_, _Kernel configuration_ and mocked _Target ID_.
 
-This process is proved by an accompanying script which builds a Falco eBPF probe for `Amazon Linux 2` with the `4.14.232-176.381.amzn2` kernel which can be executed via:
+This process is proved by the accompanying scripts which
+
+- builds a Falco eBPF probe for `Amazon Linux 2` with the `4.14.232-176.381.amzn2` kernel which can be executed via:
 
 ```bash
 # A list of Kernel packages for Amazon Linux 2 can be obtained by running:
 # $ docker run --rm amazonlinux:2 yum --showduplicates list kernel-devel | tail -n+3 | awk '{ print $2 }'
 $ bash ./docs/BUILD_DESIGN_assets/build-amazonlinux2-ebpf-probe.sh "4.14.232-176.381.amzn2"
+```
+
+- builds a Falco eBPF probe for `Google COS` with the `cos-101-17162-40-20` image which can be executed via:
+
+```bash
+$ bash ./docs/BUILD_DESIGN_assets/build-googlecos-ebpf-probe.sh "cos-101-17162-40-20"
 ```
 
 ## Design
@@ -156,7 +164,7 @@ Note: _hydrated_ means that the values are retrieved, i.e. the `GetKernelPackage
 
 ### Operating Systems without Package Managers
 
-Not all Operating Systems feature a Package Manager (e.g. `yum`, `apt`, `pacman`, etc.) thus `KernelPackage` may be seen as misnamed in the context of those Operating Systems. An example of this is `Google Container OS` which features security measures such as immutable filesystems. In order to fit these types of Operating Systems, we can use their [`BuildID`](https://cloud.google.com/container-optimized-os/docs/release-notes) as a `KernelPackage` where multiple `KernelPackage`s may output the same Falco eBPF Probe in the likely event that `BuildID`s share Kernels.
+Not all Operating Systems feature a Package Manager (e.g. `yum`, `apt`, `pacman`, etc.) thus `KernelPackage` may be seen as misnamed in the context of those Operating Systems. An example of this is `Google Container OS` which features security measures such as immutable filesystems. In order to fit these types of Operating Systems, we can use their [`Image Name`](https://cloud.google.com/container-optimized-os/docs/concepts/versioning) (an amalgamation of `Milestone` and `Build Number`) as a `KernelPackage` where multiple `KernelPackage`s may output the same Falco eBPF Probe in the likely event that images share Kernels.
 
 ### Building Falco eBPF Probes at Scale
 

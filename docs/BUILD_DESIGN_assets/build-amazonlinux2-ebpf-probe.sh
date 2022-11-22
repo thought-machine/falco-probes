@@ -3,15 +3,19 @@
 set -Eeuox pipefail
 
 # FALCO_VERSION is the version of Falco to compile the eBPF probe for.
-FALCO_VERSION="0.28.1"
+FALCO_VERSION="0.33.0"
+# UBUNTU_VERSION is the version of Ubuntu to use as the build environment.
+UBUNTU_VERSION="22.04"
 # The chosen kernel is defined as `KERNEL_PACKAGE`.
-if [ -v 1 ]; then
+if [ -v $1 ]; then
     echo "A kernel package version is expected as an argument."
     exit 2
 fi
+# Examples:
+# 4.14.232-176.381.amzn2
 KERNEL_PACKAGE="$1"
 # FALCO_DRIVER_BUILD_IMAGE is the docker image tag for the patched version of falco-driver-loader
-FALCO_DRIVER_BUILDER_IMAGE="falco-driver-loader:${FALCO_VERSION}"
+FALCO_DRIVER_BUILDER_IMAGE="falco-driver-builder:${FALCO_VERSION}"
 
 # 1. Build a modified `falco-driver-loader` image (called `falco-driver-builder`) that supports inputs:
 # - `UNAME_R` (mock output of `uname -r`)
@@ -78,9 +82,10 @@ docker run --rm \
     --env UNAME_V="$UNAME_V" \
     --env UNAME_R="$UNAME_R" \
     --env UNAME_M="$UNAME_M" \
-    --volume "${usr_src_volume}":/host/usr/src/ \
-    --volume "${lib_modules_volume}":/host/lib/modules/ \
-    --volume "${etc_volume}":/host/etc/ \
+    --env HOST_ROOT="/host" \
+    --volume "${usr_src_volume}":"/host/usr/src/" \
+    --volume "${lib_modules_volume}":"/lib/modules/" \
+    --volume "${etc_volume}":"/host/etc/" \
     "${FALCO_DRIVER_BUILDER_IMAGE}"
 
 # Clean up Docker volumes

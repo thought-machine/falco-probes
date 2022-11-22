@@ -6,7 +6,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: |
+      - name: amazonlinux2
+        run: |
           kernel_pkgs=$(docker run --rm amazonlinux:2 yum --showduplicates list kernel-devel | tail -n+3 | awk '{ print $2 }')
           last_kernel_pkg=$(echo "${kernel_pkgs}" | tail -n1)
           bash ./docs/BUILD_DESIGN_assets/build-amazonlinux2-ebpf-probe.sh "$last_kernel_pkg"
+      - name: googlecos
+        run: |
+          last_image_name=$(
+            git clone -q https://cos.googlesource.com/cos/manifest-snapshots /tmp/cos &&
+            REFS=($(git -C /tmp/cos ls-remote -q --sort=-v:refname --head origin 'refs/heads/release-R*' | head -n1)) &&
+            MILESTONE="${REFS[1]##*release-R}" &&
+            BUILD_ID="$(git -C /tmp/cos tag --sort=-v:refname -l --contains "${REFS[0]}" | head -n1)" &&
+            echo "cos-$MILESTONE-${BUILD_ID//./-}")
+          bash ./docs/BUILD_DESIGN_assets/build-googlecos-ebpf-probe.sh "$last_image_name"
