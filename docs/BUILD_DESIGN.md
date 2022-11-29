@@ -97,7 +97,7 @@ $ bash ./docs/BUILD_DESIGN_assets/build-amazonlinux2-ebpf-probe.sh "4.14.232-176
 - builds a Falco eBPF probe for `Google COS` with the `cos-101-17162-40-20` image which can be executed via:
 
 ```bash
-$ bash ./docs/BUILD_DESIGN_assets/build-googlecos-ebpf-probe.sh "cos-101-17162-40-20"
+$ bash ./docs/BUILD_DESIGN_assets/build-cos-ebpf-probe.sh "cos-101-17162-40-20"
 ```
 
 ## Design

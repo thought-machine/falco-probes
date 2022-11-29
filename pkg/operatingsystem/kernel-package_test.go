@@ -28,6 +28,14 @@ func TestKernelPackageProbeName(t *testing.T) {
 			},
 			"falco_amazonlinux2_4.14.143-118.123.amzn2.x86_64_1",
 		},
+		{
+			&operatingsystem.KernelPackage{
+				OperatingSystem: "cos",
+				KernelRelease:   "5.15.65",
+				KernelVersion:   "#1 SMP Thu Nov 10 10:13:28 UTC 2022",
+			},
+			"falco_cos_5.15.65_1",
+		},
 	}
 
 	for _, tt := range tests {

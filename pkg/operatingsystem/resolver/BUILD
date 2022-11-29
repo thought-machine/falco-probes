@@ -10,5 +10,6 @@ go_library(
         "//pkg/docker",
         "//pkg/operatingsystem",
         "//pkg/operatingsystem/amazonlinux2",
+        "//pkg/operatingsystem/cos",
     ],
 )
