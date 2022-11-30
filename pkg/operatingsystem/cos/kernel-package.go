@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/thought-machine/falco-probes/internal/logging"
 	"github.com/thought-machine/falco-probes/pkg/docker"
 	"github.com/thought-machine/falco-probes/pkg/operatingsystem"
 )
@@ -22,8 +23,13 @@ const (
 	BusyBoxImage = "docker.io/library/busybox:1.33.1"
 
 	kernelReleasePattern       = `^([0-9]+\.){2}[0-9]+$`
-	urlCosKernelConfigTemplate = "https://cos.googlesource.com/third_party/kernel/+/%s/arch/x86/configs/lakitu_defconfig?format=TEXT"
+	urlCosKernelConfigTemplate = "https://cos.googlesource.com/third_party/kernel/+/%s/arch/x86/configs/%s_defconfig?format=TEXT"
 	urlCosToolsTemplate        = "https://storage.googleapis.com/cos-tools/%s/%s"
+)
+
+var (
+	arches = [...]string{"lakitu", "x86_64"}
+	log    = logging.Logger
 )
 
 // NewKernelPackage returns a new hydrated example implementation operatingsystem.KernelPackage.
@@ -245,18 +251,35 @@ func readKernelCommit(buildID string) (string, error) {
 }
 
 func readKernelConfig(buildID string, kernelCommit string) (string, error) {
-	resp, err := http.Get(fmt.Sprintf(urlCosKernelConfigTemplate, kernelCommit))
-	if err != nil {
-		return "", fmt.Errorf("could not get kernel config for build id %s (kernel commit %s): %w", buildID, kernelCommit, err)
-	}
+	body := make([]byte, 0)
 
-	if resp.StatusCode > 299 {
-		return "", fmt.Errorf("could not get 2XX response for kernel config for build id %s (kernel commit %s): %s", buildID, kernelCommit, resp.Status)
-	}
+	archLastIndex := len(arches) - 1
+	for i, arch := range arches {
+		resp, err := http.Get(fmt.Sprintf(urlCosKernelConfigTemplate, kernelCommit, arch))
+		if err != nil {
+			return "", fmt.Errorf("could not get kernel config for build id %s (kernel commit %s): %w", buildID, kernelCommit, err)
+		}
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("could not read kernel commit for build id %s: %w", buildID, err)
+		// If the config for the preferred architecture is not found, retry with the next one.
+		if resp.StatusCode == 404 && i < archLastIndex {
+			log.Warn().
+				Str("build_id", buildID).
+				Str("kernel_commit", kernelCommit).
+				Str("architecture", arch).
+				Msg("could not find config for")
+			continue
+		}
+
+		if resp.StatusCode > 299 {
+			return "", fmt.Errorf("could not get 2XX response for kernel config for build id %s (kernel commit %s): %s", buildID, kernelCommit, resp.Status)
+		}
+
+		body, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return "", fmt.Errorf("could not read kernel commit for build id %s: %w", buildID, err)
+		}
+
+		break
 	}
 
 	return string(body), nil

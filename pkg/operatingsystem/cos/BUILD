@@ -9,6 +9,7 @@ go_library(
         "//pkg/...",
     ],
     deps = [
+        "//internal/logging",
         "//pkg/docker",
         "//pkg/operatingsystem",
         "//pkg/operatingsystem/cos/buildid",
