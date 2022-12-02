@@ -12,7 +12,7 @@ import (
 
 func TestFilterInvalid(t *testing.T) {
 	// See https://cos.googlesource.com/cos/manifest-snapshots/+log/refs/heads/release-R101/
-	testBuildIDs := []string{"17162.40.35", "17162.40.34", "17162.40.25", "17162.40.24"}
+	testBuildIDs := []string{"17162.40.35", "17162.40.34", "17162.40.25", "17162.40.24", "17154.0.0"}
 	// See https://cloud.google.com/container-optimized-os/docs/release-notes/m101
 	expectedBuildIDs := []string{"17162.40.34", "17162.40.25"}
 

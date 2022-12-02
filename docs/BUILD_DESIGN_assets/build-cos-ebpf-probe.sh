@@ -114,9 +114,8 @@ docker run --rm \
     --env UNAME_R="${UNAME_R}" \
     --env UNAME_M="${UNAME_M}" \
     --env BUILD_ID="${BUILD_ID}" \
-    --env HOST_ROOT="/host" \
     --volume "${usr_src_volume}":"/host/usr/src/" \
-    --volume "${lib_modules_volume}":"/lib/modules/" \
+    --volume "${lib_modules_volume}":"/host/lib/modules/" \
     --volume "${etc_volume}":"/host/etc/" \
     "${FALCO_DRIVER_BUILDER_IMAGE}"
 
