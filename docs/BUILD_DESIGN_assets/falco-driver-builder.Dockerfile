@@ -27,9 +27,15 @@ RUN set -Eeuxo pipefail; \
     sed -i 's/uname -m/echo "${UNAME_M:-$(uname -m)}"/g' "${FALCO_DRIVER_LOADER_PATH}" && \
     echo "Done!"
 
+# Build falco probes in a recent version of Ubuntu to ensure we have up-to-date tooling
+# containing required symbols (e.g. GLIBC_<RECENT_VERSION>).
 FROM docker.io/ubuntu:${UBUNTU_VERSION}
 
 ENV FALCO_DRIVER_LOADER_PATH="/usr/bin/falco-driver-loader"
+
+# Set up the Falco enviromental variables.
+ENV HOST_ROOT /host
+ENV HOME /root
 
 SHELL ["/bin/bash", "-c"]
 
@@ -43,6 +49,10 @@ RUN set -Eeuxo pipefail; \
       llvm \
     && \
     rm -rf /var/lib/apt/lists/*
+
+# Set up the Falco symlinks.
+RUN rm -df /lib/modules \
+	&& ln -s $HOST_ROOT/lib/modules /lib/modules
 
 # Copy in entrypoint, falco source and falco-driver-loader script
 COPY --from=falco-driver-loader "/docker-entrypoint.sh" "/docker-entrypoint.sh"

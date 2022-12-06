@@ -3,6 +3,7 @@ package buildid
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -64,6 +65,16 @@ func (v Validator) FilterInvalid(buildIDsIn []string) ([]string, error) {
 }
 
 func (v Validator) validate(buildID string, sem chan bool, results chan<- ValidatorResult) {
+    // If the buildID ends in .0.0 then filter it immediately as in all milestones there has never been
+    // a valid release matching this (and therefore it's a fairly good guess these are alpha versions).
+    // We can then ignore falco-driver-loader's COS_73_WORKAROUND choking on cos-101-17033-0-0 to
+    // cos-101-17109-0-0. See:
+    // https://cloud.google.com/container-optimized-os/docs/release-notes/m{101,97,93,89,85,81,77,73,69}
+    // https://github.com/draios/sysdig/pull/1431
+    if strings.HasSuffix(buildID, ".0.0") {
+        results <- ValidatorResult{buildID: buildID, valid: false, err: nil}
+        return
+    }
 	req, err := http.NewRequest(http.MethodHead, fmt.Sprintf(urlTemplate, buildID), nil)
 	if err != nil {
 		results <- ValidatorResult{buildID: buildID, valid: false, err: err}

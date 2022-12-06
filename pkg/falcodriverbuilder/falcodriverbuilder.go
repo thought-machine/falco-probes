@@ -24,6 +24,8 @@ const (
 	FalcoDriverBuilderRepository = "docker.io/thoughtmachine/falco-driver-builder"
 	// BuiltFalcoProbesDir references the directory where the falco-driver-builder image outputs built probes to.
 	BuiltFalcoProbesDir = "/root/.falco/"
+	// UbuntuVersion is the version of Ubuntu we build the probes in.
+	UbuntuVersion = "22.04"
 )
 
 var (
@@ -41,6 +43,7 @@ func BuildImage(
 		Dockerfile: FalcoDriverBuilderDockerfile,
 		BuildArgs: map[string]*string{
 			"FALCO_VERSION": docker.StrPtr(falcoVersion),
+			"UBUNTU_VERSION": docker.StrPtr(UbuntuVersion),
 		},
 		Tags: []string{imageFQN},
 	})

@@ -77,7 +77,7 @@ func addSourcesAndConfiguration(dockerClient *docker.Client, kp *operatingsystem
 		return err
 	}
 
-	commandTemplate := "mkdir -p /usr/src/kernels && mkdir -p '/lib/modules/%s+'"
+	commandTemplate := "mkdir -p /usr/src/kernels && mkdir -p '/lib/modules/%s'"
 
 	kp.KernelConfiguration = dockerClient.MustCreateVolume()
 	kp.KernelSources = dockerClient.MustCreateVolume()
@@ -96,7 +96,7 @@ func addSourcesAndConfiguration(dockerClient *docker.Client, kp *operatingsystem
 		return err
 	}
 
-	err = dockerClient.WriteFileToVolume(kp.KernelConfiguration, "/lib/modules/", fmt.Sprintf("/lib/modules/%s+/config", kp.KernelRelease), kernelConfig)
+	err = dockerClient.WriteFileToVolume(kp.KernelConfiguration, "/lib/modules/", fmt.Sprintf("/lib/modules/%s/config", kp.KernelRelease), kernelConfig)
 	if err != nil {
 		return err
 	}
