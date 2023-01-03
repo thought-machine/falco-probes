@@ -12,7 +12,8 @@ import (
 const (
 	// MilestoneMin is the lowest active milestone. Lower value milestones are not built. See
 	// https://cloud.google.com/container-optimized-os/docs/concepts/versioning.
-	MilestoneMin = 89
+	// Set to 85 (despite deprecation to cover versions that are being upgraded).
+	MilestoneMin = 85
 
 	milestonePrefix = "origin/release-R"
 	buildIDFormat   = "%d.%d.%d"
