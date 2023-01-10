@@ -22,7 +22,8 @@ const (
 	// We cannot use scratch unless we build our own blank image from scratch, which adds more complexity.
 	BusyBoxImage = "docker.io/library/busybox:1.33.1"
 
-	kernelReleasePattern       = `^([0-9]+\.){2}[0-9]+$`
+	// kernelReleasePattern expects a kernel release like 5.15.73+.
+	kernelReleasePattern       = `^([0-9]+\.){2}[0-9]+\+$`
 	urlCosKernelConfigTemplate = "https://cos.googlesource.com/third_party/kernel/+/%s/arch/x86/configs/%s_defconfig?format=TEXT"
 	urlCosToolsTemplate        = "https://storage.googleapis.com/cos-tools/%s/%s"
 )
@@ -179,7 +180,7 @@ func extractKernelDetails(buildID string, kernelHeaders io.Reader, kp *operating
 
 		switch header.Typeflag {
 		case tar.TypeDir:
-			// Read kernel release from directory e.g. ./usr/src/linux-headers-5.15.73+/ -> 5.15.73
+			// Read kernel release from directory e.g. ./usr/src/linux-headers-5.15.73+/ -> 5.15.73+
 			if kp.KernelRelease != "" {
 				continue
 			}
@@ -187,7 +188,8 @@ func extractKernelDetails(buildID string, kernelHeaders io.Reader, kp *operating
 			if len(components) < 2 {
 				continue
 			}
-			components = strings.SplitN(components[1], "+", 2)
+			// Include `+` in kernel release as Falco expects it in the filename when loading the probe.
+			components = strings.SplitAfterN(components[1], "+", 2)
 			if len(components) < 2 {
 				continue
 			}

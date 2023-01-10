@@ -29,7 +29,7 @@ func TestGetKernelPackageByName(t *testing.T) {
 	res, err := os.GetKernelPackageByName("cos-101-17162-40-34")
 	assert.NoError(t, err)
 
-	assert.Equal(t, "5.15.65", res.KernelRelease)
+	assert.Equal(t, "5.15.65+", res.KernelRelease)
 	assert.Equal(t, "#1 SMP Thu Nov 10 10:13:28 UTC 2022", res.KernelVersion)
 	assert.Equal(t, "x86_64", res.KernelMachine)
 	assert.Contains(t, res.OSRelease, "NAME=\"Container-Optimized OS\"")
