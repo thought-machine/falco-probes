@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/thought-machine/falco-probes/internal/logging"
 	"github.com/thought-machine/falco-probes/pkg/docker"
@@ -23,7 +24,12 @@ const (
 	BusyBoxImage = "docker.io/library/busybox:1.33.1"
 
 	// kernelReleasePattern expects a kernel release like 5.15.73+.
-	kernelReleasePattern       = `^([0-9]+\.){2}[0-9]+\+$`
+	kernelReleasePattern = `^([0-9]+\.){2}[0-9]+\+$`
+	// rateLimitTries is number of tries (including the original) when https://cos.googlesource.com rate limits us.
+	rateLimitTries = 3
+	// rateLimitSecondsBase is number of seconds multiplied by the current try (1, ..., rateLimitTries - 1) that the code will wait to call the COS repo again.
+	// This cannot be too long otherwise the Github action may timeout.
+	rateLimitSecondsBase       = 5
 	urlCosKernelConfigTemplate = "https://cos.googlesource.com/third_party/kernel/+/%s/arch/x86/configs/%s_defconfig?format=TEXT"
 	urlCosToolsTemplate        = "https://storage.googleapis.com/cos-tools/%s/%s"
 )
@@ -148,16 +154,29 @@ func addKernelReleaseAndVersionAndMachine(dockerClient *docker.Client, kp *opera
 }
 
 func readKernelHeaders(buildID string) (io.ReadCloser, error) {
-	resp, err := http.Get(fmt.Sprintf(urlCosToolsTemplate, buildID, "kernel-headers.tgz"))
-	if err != nil {
-		return nil, fmt.Errorf("could not get kernel headers for build id %s: %w", buildID, err)
+	for readTry := 1; readTry <= rateLimitTries; readTry++ {
+		resp, err := http.Get(fmt.Sprintf(urlCosToolsTemplate, buildID, "kernel-headers.tgz"))
+		if err != nil {
+			return nil, fmt.Errorf("could not get kernel headers for build id %s: %w", buildID, err)
+		}
+
+		// The Google COS repo can rate limit us with a 429 so do some basic backoff and retry logic.
+		if resp.StatusCode == 429 {
+			if readTry == rateLimitTries {
+				return nil, fmt.Errorf("rate limited %d times with 429 for kernel headers for build id %s: %s", rateLimitTries, buildID, resp.Status)
+			}
+			time.Sleep(time.Duration(rateLimitSecondsBase * readTry) * time.Second)
+			continue
+		}
+
+		if resp.StatusCode > 299 {
+			return nil, fmt.Errorf("could not get 2XX response for kernel headers for build id %s: %s", buildID, resp.Status)
+		}
+
+		return resp.Body, nil
 	}
 
-	if resp.StatusCode > 299 {
-		return nil, fmt.Errorf("could not get 2XX response for kernel headers for build id %s: %s", buildID, resp.Status)
-	}
-
-	return resp.Body, nil
+	return nil, nil
 }
 
 func extractKernelDetails(buildID string, kernelHeaders io.Reader, kp *operatingsystem.KernelPackage) error {
@@ -234,22 +253,36 @@ func extractKernelDetails(buildID string, kernelHeaders io.Reader, kp *operating
 }
 
 func readKernelCommit(buildID string) (string, error) {
-	resp, err := http.Get(fmt.Sprintf(urlCosToolsTemplate, buildID, "kernel_commit"))
-	if err != nil {
-		return "", fmt.Errorf("could not get kernel commit for build id %s: %w", buildID, err)
-	}
-	defer resp.Body.Close()
+	for readTry := 1; readTry <= rateLimitTries; readTry++ {
+		resp, err := http.Get(fmt.Sprintf(urlCosToolsTemplate, buildID, "kernel_commit"))
 
-	if resp.StatusCode > 299 {
-		return "", fmt.Errorf("could not get 2XX response for kernel commit for build id %s: %s", buildID, resp.Status)
+		if err != nil {
+			return "", fmt.Errorf("could not get kernel commit for build id %s: %w", buildID, err)
+		}
+		defer resp.Body.Close()
+
+		// The Google COS repo can rate limit us with a 429 so do some basic backoff and retry logic.
+		if resp.StatusCode == 429 {
+			if readTry == rateLimitTries {
+				return "", fmt.Errorf("rate limited %d times with 429 for kernel commit for build id %s: %s", rateLimitTries, buildID, resp.Status)
+			}
+			time.Sleep(time.Duration(rateLimitSecondsBase * readTry) * time.Second)
+			continue
+		}
+
+		if resp.StatusCode > 299 {
+			return "", fmt.Errorf("could not get 2XX response for kernel commit for build id %s: %s", buildID, resp.Status)
+		}
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return "", fmt.Errorf("could not read kernel commit for build id %s: %w", buildID, err)
+		}
+
+		return strings.TrimSuffix(string(body), "\n"), nil
 	}
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("could not read kernel commit for build id %s: %w", buildID, err)
-	}
-
-	return strings.TrimSuffix(string(body), "\n"), nil
+	return "", nil
 }
 
 func readKernelConfig(buildID string, kernelCommit string) (string, error) {
@@ -257,34 +290,45 @@ func readKernelConfig(buildID string, kernelCommit string) (string, error) {
 
 	archLastIndex := len(arches) - 1
 	for i, arch := range arches {
-		resp, err := http.Get(fmt.Sprintf(urlCosKernelConfigTemplate, kernelCommit, arch))
-		if err != nil {
-			return "", fmt.Errorf("could not get kernel config for build id %s (kernel commit %s): %w", buildID, kernelCommit, err)
-		}
+		for readTry := 1; readTry <= rateLimitTries; readTry++ {
+			resp, err := http.Get(fmt.Sprintf(urlCosKernelConfigTemplate, kernelCommit, arch))
+			if err != nil {
+				return "", fmt.Errorf("could not get kernel config for build id %s (kernel commit %s): %w", buildID, kernelCommit, err)
+			}
 
-		// If the config for the preferred architecture is not found, retry with the next one.
-		if resp.StatusCode == 404 && i < archLastIndex {
-			log.Warn().
-				Str("build_id", buildID).
-				Str("kernel_commit", kernelCommit).
-				Str("architecture", arch).
-				Msg("could not find config for")
-			continue
-		}
+			// The Google COS repo can rate limit us with a 429 so do some basic backoff and retry logic.
+			if resp.StatusCode == 429 {
+				if readTry == rateLimitTries {
+					return "", fmt.Errorf("rate limited %d times with 429 for kernel config for build id %s (kernel commit %s): %s", rateLimitTries, buildID, kernelCommit, resp.Status)
+				}
+				time.Sleep(time.Duration(rateLimitSecondsBase * readTry) * time.Second)
+				continue
+			}
 
-		if resp.StatusCode > 299 {
-			return "", fmt.Errorf("could not get 2XX response for kernel config for build id %s (kernel commit %s): %s", buildID, kernelCommit, resp.Status)
-		}
+			// If the config for the preferred architecture is not found, retry with the next one.
+			if resp.StatusCode == 404 && i < archLastIndex {
+				log.Warn().
+					Str("build_id", buildID).
+					Str("kernel_commit", kernelCommit).
+					Str("architecture", arch).
+					Msg("could not find config for")
+				continue
+			}
 
-		body, err = io.ReadAll(resp.Body)
-		if err != nil {
-			return "", fmt.Errorf("could not read kernel commit for build id %s: %w", buildID, err)
-		}
+			if resp.StatusCode > 299 {
+				return "", fmt.Errorf("could not get 2XX response for kernel config for build id %s (kernel commit %s): %s", buildID, kernelCommit, resp.Status)
+			}
 
-		break
+			body, err = io.ReadAll(resp.Body)
+			if err != nil {
+				return "", fmt.Errorf("could not read kernel commit for build id %s: %w", buildID, err)
+			}
+
+			return string(body), nil
+		}
 	}
 
-	return string(body), nil
+	return "", nil
 }
 
 func decodeKernelConfig(buildID string, kernelCommit string, encodedKernelConfig string) (string, error) {
