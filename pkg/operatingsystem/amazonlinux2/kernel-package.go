@@ -119,7 +119,7 @@ func addKernelReleaseAndVersionAndMachine(dockerClient *docker.Client, kp *opera
 	}
 	kp.KernelMachine = kernelMachine
 
-	kp.KernelRelease = kp.Name + "." + kp.kernelMachine
+	kp.KernelRelease = kp.Name + "." + kp.KernelMachine
 
 	return nil
 }
