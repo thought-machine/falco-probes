@@ -4,9 +4,6 @@ go_library(
         "kernel-package.go",
         "operating-system.go",
     ],
-    deps = [
-        "//internal/logging",
-    ],
     visibility = [
         "//build/...",
         "//cmd/...",
