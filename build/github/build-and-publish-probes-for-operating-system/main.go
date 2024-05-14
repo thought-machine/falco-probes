@@ -137,6 +137,9 @@ func process1KernelPackage(
 	log.Info().
 		Str("kernel_package", kernelPackage.Name).
 		Str("probe_name", probeName).
+		Str("operating_system", kernelPackage.OperatingSystem).
+		Str("kernel_release", kernelPackage.KernelRelease).
+		Str("kernel_version", kernelPackage.KernelVersion).
 		Msg("Got kernel_package")
 
 	for _, falcoVersion := range falcoVersions {
