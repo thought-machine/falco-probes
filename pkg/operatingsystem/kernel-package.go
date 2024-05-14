@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-
-	"github.com/thought-machine/falco-probes/internal/logging"
 )
 
 // KernelPackage represents the required inputs for build a Falco Driver for a Kernel Package.
@@ -28,10 +26,7 @@ type KernelPackage struct {
 	KernelSources Volume
 }
 
-var (
-	kernelVersionRe = regexp.MustCompile(`^#(\d+)`)
-	log    = logging.Logger
-)
+var kernelVersionRe = regexp.MustCompile(`^#(\d+)`)
 
 // ProbeName returns the ProbeName expected by Falco.
 // interpreted from: https://github.com/falcosecurity/falco/blob/0.29.1/scripts/falco-driver-loader#L449
@@ -39,7 +34,6 @@ func (kp *KernelPackage) ProbeName() string {
 	driverName := "falco"
 	targetID := kp.OperatingSystem
 	kernelRelease := kp.KernelRelease
-	log.Info().Str("kernelRelease", kernelRelease)
 	// from: $(uname -v | sed 's/#\([[:digit:]]\+\).*/\1/')
 	// this sed command is extracting the first set of digits from the KernelVersion after the #. e.g.
 	// `#151-Ubuntu SMP Fri Jun 18 19:21:19 UTC 2021` becomes `151`.
