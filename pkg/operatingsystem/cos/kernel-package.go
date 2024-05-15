@@ -219,11 +219,11 @@ func extractKernelDetails(buildID string, kernelHeaders io.Reader, kp *operating
 			}
 			kp.KernelRelease = components[0]
 		case tar.TypeReg:
-			// Read kernel version and machine from generated/compile.h
+			// Read kernel version and machine from generated/compile.h and generated/utsversion.h
 			if kp.KernelVersion != "" && kp.KernelMachine != "" {
 				continue
 			}
-			if !strings.Contains(header.Name, "generated/compile.h") {
+			if !(strings.Contains(header.Name, "generated/compile.h") || strings.Contains(header.Name, "generated/utsversion.h")) {
 				continue
 			}
 			scanner := bufio.NewScanner(extractedKernelHeaders)
