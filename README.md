@@ -1,3 +1,6 @@
+> [!NOTE]
+> **This project is deprecated.** Falco 0.35.0 features [a new eBPF probe](https://falco.org/blog/falco-modern-bpf-0-35-0/) that does not require pre-compilation. We recommend upgrading to Falco >= 0.35.0 to take advantage of this probe.
+
 # [Falco](https://github.com/falcosecurity/falco) Probes
 
 This project automates the building and mirroring of eBPF kernel probes for use by [Falco](https://github.com/falcosecurity/falco) as an [*eBPF probe*](https://falco.org/blog/choosing-a-driver/#ebpf-probe) driver to consume system call information which feeds its runtime threat detection abilities.
